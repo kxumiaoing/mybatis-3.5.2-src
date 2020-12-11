@@ -17,6 +17,11 @@ package org.apache.ibatis.scripting.xmltags;
 
 /**
  * @author Clinton Begin
+ *
+ *
+ * if节点对应脚本的容器
+ *
+ * 装饰TextSqlNode
  */
 public class IfSqlNode implements SqlNode {
   private final ExpressionEvaluator evaluator;

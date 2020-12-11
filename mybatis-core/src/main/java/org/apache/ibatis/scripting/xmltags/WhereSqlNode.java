@@ -15,13 +15,17 @@
  */
 package org.apache.ibatis.scripting.xmltags;
 
+import org.apache.ibatis.session.Configuration;
+
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.ibatis.session.Configuration;
-
 /**
  * @author Clinton Begin
+ *
+ * where节点脚本对应的容器
+ *
+ * 继承TrimeSqlNode（适配器模式）
  */
 public class WhereSqlNode extends TrimSqlNode {
 

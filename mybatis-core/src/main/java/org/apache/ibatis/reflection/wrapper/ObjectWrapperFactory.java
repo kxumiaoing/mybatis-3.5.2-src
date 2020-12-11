@@ -19,6 +19,10 @@ import org.apache.ibatis.reflection.MetaObject;
 
 /**
  * @author Clinton Begin
+ *
+ * 对象包裹器工厂
+ *  1、判断某个对象是否是包裹对象
+ *  2、包裹对一个对象
  */
 public interface ObjectWrapperFactory {
 

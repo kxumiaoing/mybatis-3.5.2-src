@@ -20,6 +20,8 @@ package org.apache.ibatis.builder;
  *
  * @since 3.4.2
  * @author Kazuki Shimizu
+ *
+ * 需要初始化对象接口
  */
 public interface InitializingObject {
 

@@ -15,11 +15,6 @@
  */
 package org.apache.ibatis.scripting.xmltags;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ibatis.builder.BaseBuilder;
 import org.apache.ibatis.builder.BuilderException;
 import org.apache.ibatis.mapping.SqlSource;
@@ -29,8 +24,17 @@ import org.apache.ibatis.session.Configuration;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author Clinton Begin
+ */
+
+/**
+ * 解析sql脚本
  */
 public class XMLScriptBuilder extends BaseBuilder {
 
@@ -46,24 +50,36 @@ public class XMLScriptBuilder extends BaseBuilder {
   public XMLScriptBuilder(Configuration configuration, XNode context, Class<?> parameterType) {
     super(configuration);
     this.context = context;
+    /**
+     * 这个类型是insert/update/delete/select节点上的paramterType指定的类型
+     */
     this.parameterType = parameterType;
     initNodeHandlerMap();
   }
 
 
   private void initNodeHandlerMap() {
-    nodeHandlerMap.put("trim", new TrimHandler());
-    nodeHandlerMap.put("where", new WhereHandler());
-    nodeHandlerMap.put("set", new SetHandler());
-    nodeHandlerMap.put("foreach", new ForEachHandler());
+    /**
+     * 动态语句处理器
+     */
     nodeHandlerMap.put("if", new IfHandler());
+
     nodeHandlerMap.put("choose", new ChooseHandler());
     nodeHandlerMap.put("when", new IfHandler());
     nodeHandlerMap.put("otherwise", new OtherwiseHandler());
+
+    nodeHandlerMap.put("trim", new TrimHandler());
+    nodeHandlerMap.put("where", new WhereHandler());
+    nodeHandlerMap.put("set", new SetHandler());
+
+    nodeHandlerMap.put("foreach", new ForEachHandler());
     nodeHandlerMap.put("bind", new BindHandler());
   }
 
   public SqlSource parseScriptNode() {
+    /**
+     * 处理动态子节点
+     */
     MixedSqlNode rootSqlNode = parseDynamicTags(context);
     SqlSource sqlSource;
     if (isDynamic) {
@@ -76,24 +92,49 @@ public class XMLScriptBuilder extends BaseBuilder {
 
   protected MixedSqlNode parseDynamicTags(XNode node) {
     List<SqlNode> contents = new ArrayList<>();
+    /**
+     * 动态子节点
+     */
     NodeList children = node.getNode().getChildNodes();
     for (int i = 0; i < children.getLength(); i++) {
       XNode child = node.newXNode(children.item(i));
+      /**
+       * 处理文本动态节点
+       */
       if (child.getNode().getNodeType() == Node.CDATA_SECTION_NODE || child.getNode().getNodeType() == Node.TEXT_NODE) {
+        /**
+         * 文本内容
+         */
         String data = child.getStringBody("");
+        /**
+         * 根据文本内容创建TextSqlNode
+         */
         TextSqlNode textSqlNode = new TextSqlNode(data);
+
         if (textSqlNode.isDynamic()) {
           contents.add(textSqlNode);
           isDynamic = true;
         } else {
+          /**
+           * 这个分支目前来看不会走
+           */
           contents.add(new StaticTextSqlNode(data));
         }
       } else if (child.getNode().getNodeType() == Node.ELEMENT_NODE) { // issue #628
+        /**
+         * 处理节点动态节点
+         */
+        /**
+         * 根据节点的名字找到对应的处理器处理
+         */
         String nodeName = child.getNode().getNodeName();
         NodeHandler handler = nodeHandlerMap.get(nodeName);
         if (handler == null) {
           throw new BuilderException("Unknown element <" + nodeName + "> in SQL statement.");
         }
+        /**
+         * 处理生成sqlNode
+         */
         handler.handleNode(child, contents);
         isDynamic = true;
       }
@@ -126,10 +167,17 @@ public class XMLScriptBuilder extends BaseBuilder {
 
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
+      /**
+       * 这个更加简单，就是把多个if串起来，组成混合SqlNode
+       */
       MixedSqlNode mixedSqlNode = parseDynamicTags(nodeToHandle);
+      //前缀
       String prefix = nodeToHandle.getStringAttribute("prefix");
+      //前缀抹除
       String prefixOverrides = nodeToHandle.getStringAttribute("prefixOverrides");
+      //后缀
       String suffix = nodeToHandle.getStringAttribute("suffix");
+      //后缀摸出
       String suffixOverrides = nodeToHandle.getStringAttribute("suffixOverrides");
       TrimSqlNode trim = new TrimSqlNode(configuration, mixedSqlNode, prefix, prefixOverrides, suffix, suffixOverrides);
       targetContents.add(trim);
@@ -143,6 +191,9 @@ public class XMLScriptBuilder extends BaseBuilder {
 
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
+      /**
+       * 将多个if串起来
+       */
       MixedSqlNode mixedSqlNode = parseDynamicTags(nodeToHandle);
       WhereSqlNode where = new WhereSqlNode(configuration, mixedSqlNode);
       targetContents.add(where);
@@ -156,6 +207,9 @@ public class XMLScriptBuilder extends BaseBuilder {
 
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
+      /**
+       * 将多个if串起来
+       */
       MixedSqlNode mixedSqlNode = parseDynamicTags(nodeToHandle);
       SetSqlNode set = new SetSqlNode(configuration, mixedSqlNode);
       targetContents.add(set);
@@ -188,8 +242,14 @@ public class XMLScriptBuilder extends BaseBuilder {
 
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
+      /**
+       * 宿主类帮助解析
+       */
       MixedSqlNode mixedSqlNode = parseDynamicTags(nodeToHandle);
       String test = nodeToHandle.getStringAttribute("test");
+      /**
+       * 装饰模式，装饰一把，使用的时候剥开装饰就行
+       */
       IfSqlNode ifSqlNode = new IfSqlNode(mixedSqlNode, test);
       targetContents.add(ifSqlNode);
     }
@@ -202,7 +262,13 @@ public class XMLScriptBuilder extends BaseBuilder {
 
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
+      /**
+       * 宿主类帮助解析
+       */
       MixedSqlNode mixedSqlNode = parseDynamicTags(nodeToHandle);
+      /**
+       * 直白返回结果
+       */
       targetContents.add(mixedSqlNode);
     }
   }
@@ -216,8 +282,17 @@ public class XMLScriptBuilder extends BaseBuilder {
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
       List<SqlNode> whenSqlNodes = new ArrayList<>();
       List<SqlNode> otherwiseSqlNodes = new ArrayList<>();
+      /**
+       * 处理when，otherwise节点
+       */
       handleWhenOtherwiseNodes(nodeToHandle, whenSqlNodes, otherwiseSqlNodes);
+      /**
+       * 缺省条件有或者有且只有一个
+       */
       SqlNode defaultSqlNode = getDefaultSqlNode(otherwiseSqlNodes);
+      /**
+       * 多合一，只取其中一个条件
+       */
       ChooseSqlNode chooseSqlNode = new ChooseSqlNode(whenSqlNodes, defaultSqlNode);
       targetContents.add(chooseSqlNode);
     }
@@ -226,6 +301,10 @@ public class XMLScriptBuilder extends BaseBuilder {
       List<XNode> children = chooseSqlNode.getChildren();
       for (XNode child : children) {
         String nodeName = child.getNode().getNodeName();
+        /**
+         * when节点委托给if处理器
+         * otherwise节点使用otherwise处理器
+         */
         NodeHandler handler = nodeHandlerMap.get(nodeName);
         if (handler instanceof IfHandler) {
           handler.handleNode(child, ifSqlNodes);

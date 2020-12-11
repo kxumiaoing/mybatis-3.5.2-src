@@ -33,6 +33,8 @@ import java.util.regex.Pattern;
  */
 
 /**
+ * 主要功能：值转换
+ *
  * 配置文件解析器父类
  *  1、提供将字符串转换成脚手架类型或者脚手架类型的对象
  *  2、辅助构造Configuration对象

@@ -31,6 +31,10 @@ import org.apache.ibatis.session.Configuration;
 /**
  * @author Eduardo Macarron
  */
+
+/**
+ * xml格式配置Mapper
+ */
 public class XMLLanguageDriver implements LanguageDriver {
 
   @Override
@@ -40,6 +44,9 @@ public class XMLLanguageDriver implements LanguageDriver {
 
   @Override
   public SqlSource createSqlSource(Configuration configuration, XNode script, Class<?> parameterType) {
+    /**
+     * 委托给XMLScriptBuilder创建SqlSource
+     */
     XMLScriptBuilder builder = new XMLScriptBuilder(configuration, script, parameterType);
     return builder.parseScriptNode();
   }

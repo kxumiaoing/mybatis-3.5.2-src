@@ -38,6 +38,16 @@
             <property name="someProperty" value="100"/>
         </plugin>
     </plugins>
+    <objectFactory type="org.mybatis.example.ExampleObjectFactory">
+        <property name="someProperty" value="100"/>
+    </objectFactory>
+    <!-- 与Mapper中的databaseId对应  -->
+    <databaseIdProvider type="DB_VENDOR">
+        <!-- 属性只是一些别名而已 -->
+        <property name="SQL Server" value="sqlserver"/>
+        <property name="DB2" value="db2"/>
+        <property name="Oracle" value="oracle" />
+    </databaseIdProvider>
     <environments default="development">
         <environment id="development">
             <transactionManager type="JDBC"/>
@@ -49,7 +59,32 @@
             </dataSource>
         </environment>
     </environments>
+    <typeHandlers>
+        <package name="org.mybatis.example"/>
+        <typeHandler handler="org.mybatis.example.ExampleTypeHandler"/>
+    </typeHandlers>
     <mappers>
         <mapper resource="org/mybatis/example/BlogMapper.xml"/>
     </mappers>
+
+    <!--
+    <mappers>
+        <mapper resource="org/mybatis/builder/AuthorMapper.xml"/>
+        <mapper resource="org/mybatis/builder/BlogMapper.xml"/>
+        <mapper resource="org/mybatis/builder/PostMapper.xml"/>
+    </mappers>
+    <mappers>
+        <mapper url="file:///var/mappers/AuthorMapper.xml"/>
+        <mapper url="file:///var/mappers/BlogMapper.xml"/>
+        <mapper url="file:///var/mappers/PostMapper.xml"/>
+    </mappers>
+    <mappers>
+        <mapper class="org.mybatis.builder.AuthorMapper"/>
+        <mapper class="org.mybatis.builder.BlogMapper"/>
+        <mapper class="org.mybatis.builder.PostMapper"/>
+    </mappers>
+    <mappers>
+        <package name="org.mybatis.builder"/>
+    </mappers>
+    -->
 </configuration>

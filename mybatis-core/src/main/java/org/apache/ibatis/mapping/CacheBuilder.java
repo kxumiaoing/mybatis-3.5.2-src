@@ -15,24 +15,19 @@
  */
 package org.apache.ibatis.mapping;
 
+import org.apache.ibatis.builder.InitializingObject;
+import org.apache.ibatis.cache.Cache;
+import org.apache.ibatis.cache.CacheException;
+import org.apache.ibatis.cache.decorators.*;
+import org.apache.ibatis.cache.impl.PerpetualCache;
+import org.apache.ibatis.reflection.MetaObject;
+import org.apache.ibatis.reflection.SystemMetaObject;
+
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import org.apache.ibatis.builder.InitializingObject;
-import org.apache.ibatis.cache.Cache;
-import org.apache.ibatis.cache.CacheException;
-import org.apache.ibatis.cache.decorators.BlockingCache;
-import org.apache.ibatis.cache.decorators.LoggingCache;
-import org.apache.ibatis.cache.decorators.LruCache;
-import org.apache.ibatis.cache.decorators.ScheduledCache;
-import org.apache.ibatis.cache.decorators.SerializedCache;
-import org.apache.ibatis.cache.decorators.SynchronizedCache;
-import org.apache.ibatis.cache.impl.PerpetualCache;
-import org.apache.ibatis.reflection.MetaObject;
-import org.apache.ibatis.reflection.SystemMetaObject;
 
 /**
  * @author Clinton Begin
@@ -90,17 +85,27 @@ public class CacheBuilder {
   }
 
   public Cache build() {
+    //默认类型设置
     setDefaultImplementations();
+    //使用构造器构造一个缓存实例
     Cache cache = newBaseCacheInstance(implementation, id);
+    //设置属性
     setCacheProperties(cache);
+
     // issue #352, do not apply decorators to custom caches
     if (PerpetualCache.class.equals(cache.getClass())) {
+      //装饰器，有多少层装饰器，就包装几层
       for (Class<? extends Cache> decorator : decorators) {
+        //使用有参构造器构造缓存对象
         cache = newCacheDecoratorInstance(decorator, cache);
         setCacheProperties(cache);
       }
+      //根据一些配置，包装底层缓存
       cache = setStandardDecorators(cache);
     } else if (!LoggingCache.class.isAssignableFrom(cache.getClass())) {
+      /**
+       * 如果是用户自定义的缓存，为这个缓存加上日志
+       */
       cache = new LoggingCache(cache);
     }
     return cache;
@@ -115,6 +120,9 @@ public class CacheBuilder {
     }
   }
 
+  /**
+   * 缓存的其他一些配置都是通过装饰起来实现的，包了一层又一层
+   */
   private Cache setStandardDecorators(Cache cache) {
     try {
       MetaObject metaCache = SystemMetaObject.forObject(cache);
@@ -145,6 +153,7 @@ public class CacheBuilder {
       for (Map.Entry<Object, Object> entry : properties.entrySet()) {
         String name = (String) entry.getKey();
         String value = (String) entry.getValue();
+        //有setter，设置值
         if (metaCache.hasSetter(name)) {
           Class<?> type = metaCache.getSetterType(name);
           if (String.class == type) {
@@ -176,6 +185,8 @@ public class CacheBuilder {
         }
       }
     }
+
+    //如果需要初始化，在设置所有属性之后进行初始化
     if (InitializingObject.class.isAssignableFrom(cache.getClass())) {
       try {
         ((InitializingObject) cache).initialize();

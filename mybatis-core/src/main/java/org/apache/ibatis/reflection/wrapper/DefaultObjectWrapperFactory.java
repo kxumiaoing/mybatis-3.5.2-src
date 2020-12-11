@@ -20,6 +20,8 @@ import org.apache.ibatis.reflection.ReflectionException;
 
 /**
  * @author Clinton Begin
+ *
+ * 一个哑对象包裹器工厂（什么都干不了）
  */
 public class DefaultObjectWrapperFactory implements ObjectWrapperFactory {
 

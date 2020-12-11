@@ -15,24 +15,31 @@
  */
 package org.apache.ibatis.reflection.wrapper;
 
-import java.util.Collection;
-import java.util.List;
-
 import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.reflection.property.PropertyTokenizer;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * @author Clinton Begin
+ * 集合的包裹器
  */
 public class CollectionWrapper implements ObjectWrapper {
 
   private final Collection<Object> object;
 
+  /**
+   * 不支持宿主元数据对象
+   */
   public CollectionWrapper(MetaObject metaObject, Collection<Object> object) {
     this.object = object;
   }
 
+  /**
+   * 集合不支持按照属性名来操作属性
+   */
   @Override
   public Object get(PropertyTokenizer prop) {
     throw new UnsupportedOperationException();

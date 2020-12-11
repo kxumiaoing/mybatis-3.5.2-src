@@ -15,15 +15,17 @@
  */
 package org.apache.ibatis.scripting.xmltags;
 
-import java.util.regex.Pattern;
-
 import org.apache.ibatis.parsing.GenericTokenParser;
 import org.apache.ibatis.parsing.TokenHandler;
 import org.apache.ibatis.scripting.ScriptingException;
 import org.apache.ibatis.type.SimpleTypeRegistry;
 
+import java.util.regex.Pattern;
+
 /**
  * @author Clinton Begin
+ *
+ * sql语句段（不完整的）容器
  */
 public class TextSqlNode implements SqlNode {
   private final String text;
@@ -40,8 +42,14 @@ public class TextSqlNode implements SqlNode {
 
   public boolean isDynamic() {
     DynamicCheckerTokenParser checker = new DynamicCheckerTokenParser();
+    /**
+     * 这下面两句有什么鸟用？
+     */
     GenericTokenParser parser = createParser(checker);
     parser.parse(text);
+    /**
+     * 直接返回true好吗？可能是为了以后扩展埋点吧
+     */
     return checker.isDynamic();
   }
 
@@ -87,6 +95,9 @@ public class TextSqlNode implements SqlNode {
     }
   }
 
+  /**
+   * 什么都不干的子类，进行是构造符合规范的对象
+   */
   private static class DynamicCheckerTokenParser implements TokenHandler {
 
     private boolean isDynamic;

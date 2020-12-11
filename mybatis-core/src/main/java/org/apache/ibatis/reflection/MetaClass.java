@@ -15,19 +15,23 @@
  */
 package org.apache.ibatis.reflection;
 
+import org.apache.ibatis.reflection.invoker.GetFieldInvoker;
+import org.apache.ibatis.reflection.invoker.Invoker;
+import org.apache.ibatis.reflection.invoker.MethodInvoker;
+import org.apache.ibatis.reflection.property.PropertyTokenizer;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
 
-import org.apache.ibatis.reflection.invoker.GetFieldInvoker;
-import org.apache.ibatis.reflection.invoker.Invoker;
-import org.apache.ibatis.reflection.invoker.MethodInvoker;
-import org.apache.ibatis.reflection.property.PropertyTokenizer;
-
 /**
  * @author Clinton Begin
+ *
+ * 类型的元数据类
+ *
+ * 所有操作委托给类型的反射器以及反射器工厂
  */
 public class MetaClass {
 
@@ -44,7 +48,9 @@ public class MetaClass {
   }
 
   public MetaClass metaClassForProperty(String name) {
+    //通过反射器获取属性的getter类型
     Class<?> propType = reflector.getGetterType(name);
+    //通过类型来构造反射器
     return MetaClass.forClass(propType, reflectorFactory);
   }
 
@@ -60,20 +66,25 @@ public class MetaClass {
     return findProperty(name);
   }
 
+
   public String[] getGetterNames() {
+    //返回所有属性的名字
     return reflector.getGetablePropertyNames();
   }
 
   public String[] getSetterNames() {
+    //返回所有可设置属性的名字
     return reflector.getSetablePropertyNames();
   }
 
   public Class<?> getSetterType(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
+    //级联属性，通过属性的元数据类继续往下找
     if (prop.hasNext()) {
       MetaClass metaProp = metaClassForProperty(prop.getName());
       return metaProp.getSetterType(prop.getChildren());
     } else {
+      //通过反射器找
       return reflector.getSetterType(prop.getName());
     }
   }

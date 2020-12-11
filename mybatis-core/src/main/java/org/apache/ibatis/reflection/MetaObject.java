@@ -15,20 +15,19 @@
  */
 package org.apache.ibatis.reflection;
 
+import org.apache.ibatis.reflection.factory.ObjectFactory;
+import org.apache.ibatis.reflection.property.PropertyTokenizer;
+import org.apache.ibatis.reflection.wrapper.*;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ibatis.reflection.factory.ObjectFactory;
-import org.apache.ibatis.reflection.property.PropertyTokenizer;
-import org.apache.ibatis.reflection.wrapper.BeanWrapper;
-import org.apache.ibatis.reflection.wrapper.CollectionWrapper;
-import org.apache.ibatis.reflection.wrapper.MapWrapper;
-import org.apache.ibatis.reflection.wrapper.ObjectWrapper;
-import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
-
 /**
  * @author Clinton Begin
+ * 对象的源元数据对象
+ *
+ * 其实就是包含原始对象、对象的包裹器以及对象的反射器
  */
 public class MetaObject {
 
@@ -44,15 +43,18 @@ public class MetaObject {
     this.objectWrapperFactory = objectWrapperFactory;
     this.reflectorFactory = reflectorFactory;
 
+    /**
+     * ObjectWrapperFactory好像不用了，而是自己创建ObjectWrapper对象
+     */
     if (object instanceof ObjectWrapper) {
       this.objectWrapper = (ObjectWrapper) object;
     } else if (objectWrapperFactory.hasWrapperFor(object)) {
       this.objectWrapper = objectWrapperFactory.getWrapperFor(this, object);
-    } else if (object instanceof Map) {
+    } else if (object instanceof Map) {//Map的ObjectWrapper对象
       this.objectWrapper = new MapWrapper(this, (Map) object);
-    } else if (object instanceof Collection) {
+    } else if (object instanceof Collection) {//结合的ObjectWrapper对象
       this.objectWrapper = new CollectionWrapper(this, (Collection) object);
-    } else {
+    } else {//bean的ObjectWrapper对象
       this.objectWrapper = new BeanWrapper(this, object);
     }
   }

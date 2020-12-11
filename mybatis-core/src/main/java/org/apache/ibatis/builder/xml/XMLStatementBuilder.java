@@ -15,26 +15,24 @@
  */
 package org.apache.ibatis.builder.xml;
 
-import java.util.List;
-import java.util.Locale;
-
 import org.apache.ibatis.builder.BaseBuilder;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.executor.keygen.Jdbc3KeyGenerator;
 import org.apache.ibatis.executor.keygen.KeyGenerator;
 import org.apache.ibatis.executor.keygen.NoKeyGenerator;
 import org.apache.ibatis.executor.keygen.SelectKeyGenerator;
-import org.apache.ibatis.mapping.MappedStatement;
-import org.apache.ibatis.mapping.ResultSetType;
-import org.apache.ibatis.mapping.SqlCommandType;
-import org.apache.ibatis.mapping.SqlSource;
-import org.apache.ibatis.mapping.StatementType;
+import org.apache.ibatis.mapping.*;
 import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.scripting.LanguageDriver;
 import org.apache.ibatis.session.Configuration;
 
+import java.util.List;
+import java.util.Locale;
+
 /**
  * @author Clinton Begin
+ *
+ * 解析insert/udpate/delete/select节点
  */
 public class XMLStatementBuilder extends BaseBuilder {
 
@@ -49,7 +47,13 @@ public class XMLStatementBuilder extends BaseBuilder {
   public XMLStatementBuilder(Configuration configuration, MapperBuilderAssistant builderAssistant, XNode context, String databaseId) {
     super(configuration);
     this.builderAssistant = builderAssistant;
+    /**
+     * select/insert/update/delete节点
+     */
     this.context = context;
+    /**
+     * databaseId
+     */
     this.requiredDatabaseId = databaseId;
   }
 
@@ -61,6 +65,9 @@ public class XMLStatementBuilder extends BaseBuilder {
       return;
     }
 
+    /**
+     * 节点的名字决定sql的类型
+     */
     String nodeName = context.getNode().getNodeName();
     SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
     boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
@@ -69,16 +76,32 @@ public class XMLStatementBuilder extends BaseBuilder {
     boolean resultOrdered = context.getBooleanAttribute("resultOrdered", false);
 
     // Include Fragments before parsing
+    /**
+     * 先解析<include>标签
+     */
     XMLIncludeTransformer includeParser = new XMLIncludeTransformer(configuration, builderAssistant);
+    /**
+     * 解析<include>节点：
+     * 1、查找<sql>节点
+     * 2、对<sql>节点进行属性替换
+     * 3、使用<sql>节点替换<include>节点
+     * 4、提出<sql>节点下的文本子节点
+     * 5、删除<sql>节点（其实就是使用子文本节点替换节点）
+     */
     includeParser.applyIncludes(context.getNode());
 
+    //参数类型
     String parameterType = context.getStringAttribute("parameterType");
     Class<?> parameterTypeClass = resolveClass(parameterType);
 
     String lang = context.getStringAttribute("lang");
+    //默认是XMLLanguageDrvier
     LanguageDriver langDriver = getLanguageDriver(lang);
 
     // Parse selectKey after includes and remove them.
+    /**
+     * 解析selectKey节点
+     */
     processSelectKeyNodes(id, parameterTypeClass, langDriver);
 
     // Parse the SQL (pre: <selectKey> and <include> were parsed and removed)
@@ -117,7 +140,13 @@ public class XMLStatementBuilder extends BaseBuilder {
   }
 
   private void processSelectKeyNodes(String id, Class<?> parameterTypeClass, LanguageDriver langDriver) {
+    /**
+     * selectKeyNodes不会为null
+     */
     List<XNode> selectKeyNodes = context.evalNodes("selectKey");
+    /**
+     * 解析selectKey节点需要考虑databaseId
+     */
     if (configuration.getDatabaseId() != null) {
       parseSelectKeyNodes(id, selectKeyNodes, parameterTypeClass, langDriver, configuration.getDatabaseId());
     }
@@ -127,14 +156,23 @@ public class XMLStatementBuilder extends BaseBuilder {
 
   private void parseSelectKeyNodes(String parentId, List<XNode> list, Class<?> parameterTypeClass, LanguageDriver langDriver, String skRequiredDatabaseId) {
     for (XNode nodeToHandle : list) {
+      /**
+       * insert的节点id+!selectKey
+        */
       String id = parentId + SelectKeyGenerator.SELECT_KEY_SUFFIX;
       String databaseId = nodeToHandle.getStringAttribute("databaseId");
       if (databaseIdMatchesCurrent(id, databaseId, skRequiredDatabaseId)) {
+        /**
+         * 解析selectKey节点
+         */
         parseSelectKeyNode(id, nodeToHandle, parameterTypeClass, langDriver, databaseId);
       }
     }
   }
 
+  /**
+   * 解析selectKey节点
+   */
   private void parseSelectKeyNode(String id, XNode nodeToHandle, Class<?> parameterTypeClass, LanguageDriver langDriver, String databaseId) {
     String resultType = nodeToHandle.getStringAttribute("resultType");
     Class<?> resultTypeClass = resolveClass(resultType);
@@ -181,11 +219,16 @@ public class XMLStatementBuilder extends BaseBuilder {
     if (databaseId != null) {
       return false;
     }
+    //将id加上namespace
     id = builderAssistant.applyCurrentNamespace(id, false);
+    //看是否已经解析过
     if (!this.configuration.hasStatement(id, false)) {
       return true;
     }
     // skip this statement if there is a previous one with a not null databaseId
+    /**
+     * 重新解析，替换没有databaseId的老的解析
+     */
     MappedStatement previous = this.configuration.getMappedStatement(id, false); // issue #2
     return previous.getDatabaseId() == null;
   }

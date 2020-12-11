@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qbd.mapper.StudentMappers">
+    <cache-ref namespace="com.someone.application.data.SomeMapper"/>
+    <sql id="countryColumns">
+        ${alias}.id,
+        ${alias}.name,
+        ${alias}.code
+    </sql>
+
+    <insert id="insertAuthor">
+        <selectKey keyProperty="id" resultType="int" order="BEFORE">
+            select CAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1
+        </selectKey>
+        insert into Author
+        (id, username, password, email,bio, favourite_section)
+        values
+        (#{id}, #{username}, #{password}, #{email}, #{bio}, #{favouriteSection,jdbcType=VARCHAR})
+    </insert>
+
+    <select id="queryCountryByIda" resultMap="countryMap">
+        select * from user
+        <trim prefix="WHERE" prefixoverride="AND |OR">
+            <if test="name != null and name.length()>0"> AND name=#{name}</if>
+            <if test="gender != null and gender.length()>0"> AND gender=#{gender}</if>
+        </trim>
+    </select>
+
+    <select id="findActiveBlogLike"
+            resultType="Blog">
+        SELECT * FROM BLOG WHERE state = 'ACTIVE'
+        <choose>
+            <when test="title != null">
+                AND title like #{title}
+            </when>
+            <when test="author != null and author.name != null">
+                AND author_name like #{author.name}
+            </when>
+            <otherwise>
+                AND featured = 1
+            </otherwise>
+        </choose>
+    </select>
+
+    <update id="u">
+        update user
+        　　<trim prefix="set" suffixoverride="," suffix=" where id = #{id} ">
+        　　　　<if test="name != null and name.length()>0"> name=#{name} , </if>
+        　　　　<if test="gender != null and gender.length()>0"> gender=#{gender} ,  </if>
+        　　</trim>
+    </update>
+
+    <select id="queryCountryById" resultMap="countryMap">
+        select
+            <include refid="countryColumns">
+                <property name="alias" value="c"/>
+            </include>
+        from country c where c.id = #{id}
+    </select>
+
+    <resultMap id="countryMap" type="Country">
+        <id property="id" column="id" jdbcType="NUMERIC"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="code" column="code" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <resultMap id="detailedBlogResultMap" type="Blog">
+        <constructor>
+            <idArg column="blog_id" javaType="int"/>
+        </constructor>
+        <result property="title" column="blog_title"/>
+        <association property="author" javaType="Author">
+            <id property="id" column="author_id"/>
+            <result property="username" column="author_username"/>
+            <result property="password" column="author_password"/>
+            <result property="email" column="author_email"/>
+            <result property="bio" column="author_bio"/>
+            <result property="favouriteSection" column="author_favourite_section"/>
+        </association>
+        <collection property="posts" ofType="Post">
+            <id property="id" column="post_id"/>
+            <result property="subject" column="post_subject"/>
+            <association property="author" javaType="Author"/>
+            <collection property="comments" ofType="Comment">
+                <id property="id" column="comment_id"/>
+            </collection>
+            <collection property="tags" ofType="Tag" >
+                <id property="id" column="tag_id"/>
+            </collection>
+            <discriminator javaType="int" column="draft">
+                <case value="1" resultType="DraftPost"/>
+            </discriminator>
+        </collection>
+    </resultMap>
+</mapper>

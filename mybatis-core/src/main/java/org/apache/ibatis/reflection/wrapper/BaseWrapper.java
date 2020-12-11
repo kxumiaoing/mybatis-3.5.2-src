@@ -15,15 +15,19 @@
  */
 package org.apache.ibatis.reflection.wrapper;
 
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.ReflectionException;
 import org.apache.ibatis.reflection.property.PropertyTokenizer;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author Clinton Begin
+ *
+ * 包含对象元数据对象的包裹器
+ *
+ * =====本类主要处理与集合相关的逻辑=====
  */
 public abstract class BaseWrapper implements ObjectWrapper {
 
@@ -34,23 +38,37 @@ public abstract class BaseWrapper implements ObjectWrapper {
     this.metaObject = metaObject;
   }
 
+  /**
+   * 根据属性名来获取属性的值，支持默认值
+   */
   protected Object resolveCollection(PropertyTokenizer prop, Object object) {
     if ("".equals(prop.getName())) {
       return object;
     } else {
+        //借助元数据对象来访问对象的集合属性
       return metaObject.getValue(prop.getName());
     }
   }
 
+  /**
+   * 根据属性名中的索引，获取集合中的对象
+   */
   protected Object getCollectionValue(PropertyTokenizer prop, Object collection) {
+    //如果是Map，索引就是key
     if (collection instanceof Map) {
       return ((Map) collection).get(prop.getIndex());
     } else {
+      //如果是结合，索引就是数字索引
       int i = Integer.parseInt(prop.getIndex());
-      if (collection instanceof List) {
+
+      if (collection instanceof List) {//集合
         return ((List) collection).get(i);
-      } else if (collection instanceof Object[]) {
+      } else if (collection instanceof Object[]) {//对象数据
         return ((Object[]) collection)[i];
+
+        /**
+         * 以下是基本类型数组
+         */
       } else if (collection instanceof char[]) {
         return ((char[]) collection)[i];
       } else if (collection instanceof boolean[]) {
@@ -73,6 +91,9 @@ public abstract class BaseWrapper implements ObjectWrapper {
     }
   }
 
+  /**
+   *  根据属性名中的索引，设置集合中的对象
+   */
   protected void setCollectionValue(PropertyTokenizer prop, Object collection, Object value) {
     if (collection instanceof Map) {
       ((Map) collection).put(prop.getIndex(), value);

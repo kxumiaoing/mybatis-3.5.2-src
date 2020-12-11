@@ -15,39 +15,19 @@
  */
 package org.apache.ibatis.builder;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.StringTokenizer;
-
 import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.cache.decorators.LruCache;
 import org.apache.ibatis.cache.impl.PerpetualCache;
 import org.apache.ibatis.executor.ErrorContext;
 import org.apache.ibatis.executor.keygen.KeyGenerator;
-import org.apache.ibatis.mapping.CacheBuilder;
-import org.apache.ibatis.mapping.Discriminator;
-import org.apache.ibatis.mapping.MappedStatement;
-import org.apache.ibatis.mapping.ParameterMap;
-import org.apache.ibatis.mapping.ParameterMapping;
-import org.apache.ibatis.mapping.ParameterMode;
-import org.apache.ibatis.mapping.ResultFlag;
-import org.apache.ibatis.mapping.ResultMap;
-import org.apache.ibatis.mapping.ResultMapping;
-import org.apache.ibatis.mapping.ResultSetType;
-import org.apache.ibatis.mapping.SqlCommandType;
-import org.apache.ibatis.mapping.SqlSource;
-import org.apache.ibatis.mapping.StatementType;
+import org.apache.ibatis.mapping.*;
 import org.apache.ibatis.reflection.MetaClass;
 import org.apache.ibatis.scripting.LanguageDriver;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
+
+import java.util.*;
 
 /**
  * @author Clinton Begin
@@ -62,6 +42,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
   public MapperBuilderAssistant(Configuration configuration, String resource) {
     super(configuration);
     ErrorContext.instance().resource(resource);
+    /**
+     * 当前Mapper xml文件的地址（resource地址或者url地址）
+     */
     this.resource = resource;
   }
 
@@ -82,6 +65,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
     this.currentNamespace = currentNamespace;
   }
 
+  /**
+   * 加上namespace
+   */
   public String applyCurrentNamespace(String base, boolean isReference) {
     if (base == null) {
       return null;
@@ -103,12 +89,18 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return currentNamespace + "." + base;
   }
 
+  /**
+   * 引用其他namespace的Cache
+   *
+   * namespace: 被参考的命名空间
+   */
   public Cache useCacheRef(String namespace) {
     if (namespace == null) {
       throw new BuilderException("cache-ref element requires a namespace attribute.");
     }
     try {
       unresolvedCacheRef = true;
+      //被参考的缓存
       Cache cache = configuration.getCache(namespace);
       if (cache == null) {
         throw new IncompleteElementException("No cache for namespace '" + namespace + "' could be found.");
@@ -121,6 +113,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
     }
   }
 
+  /**
+   * 创建Cache
+   */
   public Cache useNewCache(Class<? extends Cache> typeClass,
       Class<? extends Cache> evictionClass,
       Long flushInterval,
@@ -142,6 +137,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return cache;
   }
 
+  /**
+   * parameterMap废弃，不用管
+   */
   public ParameterMap addParameterMap(String id, Class<?> parameterClass, List<ParameterMapping> parameterMappings) {
     id = applyCurrentNamespace(id, false);
     ParameterMap parameterMap = new ParameterMap.Builder(configuration, id, parameterClass, parameterMappings).build();
@@ -149,6 +147,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return parameterMap;
   }
 
+  /**
+   * parameterMap废弃，不用管
+   */
   public ParameterMapping buildParameterMapping(
       Class<?> parameterType,
       String property,
@@ -173,6 +174,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
         .build();
   }
 
+  /**
+   * 创建一个ResultMap
+   */
   public ResultMap addResultMap(
       String id,
       Class<?> type,
@@ -210,6 +214,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return resultMap;
   }
 
+  /**
+   * 创建一个discriminator对应的ResultMapping
+   */
   public Discriminator buildDiscriminator(
       Class<?> resultType,
       String column,
@@ -217,6 +224,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
       JdbcType jdbcType,
       Class<? extends TypeHandler<?>> typeHandler,
       Map<String, String> discriminatorMap) {
+    //根据一个discriminator节点创建一个ResultMapping对象
     ResultMapping resultMapping = buildResultMapping(
         resultType,
         null,
@@ -235,6 +243,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
     Map<String, String> namespaceDiscriminatorMap = new HashMap<>();
     for (Map.Entry<String, String> e : discriminatorMap.entrySet()) {
       String resultMap = e.getValue();
+
       resultMap = applyCurrentNamespace(resultMap, true);
       namespaceDiscriminatorMap.put(e.getKey(), resultMap);
     }
@@ -368,7 +377,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
       String resultSet,
       String foreignColumn,
       boolean lazy) {
+      //javaType
     Class<?> javaTypeClass = resolveResultJavaType(resultType, property, javaType);
+    //tyepHandler
     TypeHandler<?> typeHandlerInstance = resolveTypeHandler(javaTypeClass, typeHandler);
     List<ResultMapping> composites;
     if ((nestedSelect == null || nestedSelect.isEmpty()) && (foreignColumn == null || foreignColumn.isEmpty())) {
@@ -423,6 +434,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
   }
 
   private Class<?> resolveResultJavaType(Class<?> resultType, String property, Class<?> javaType) {
+    /**
+     * 通过属性的setter来获取属性的javaType
+     */
     if (javaType == null && property != null) {
       try {
         MetaClass metaResultType = MetaClass.forClass(resultType, configuration.getReflectorFactory());

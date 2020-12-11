@@ -15,26 +15,17 @@
  */
 package org.apache.ibatis.reflection.factory;
 
-import java.io.Serializable;
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
 import org.apache.ibatis.reflection.ReflectionException;
 import org.apache.ibatis.reflection.Reflector;
 
+import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.util.*;
+import java.util.stream.Collectors;
+
 /**
  * @author Clinton Begin
+ * 使用构造器（反射）构造对象
  */
 public class DefaultObjectFactory implements ObjectFactory, Serializable {
 
@@ -57,18 +48,20 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
     try {
       Constructor<T> constructor;
       if (constructorArgTypes == null || constructorArgs == null) {
+          //使用无参构造器够构造对象
         constructor = type.getDeclaredConstructor();
         try {
           return constructor.newInstance();
         } catch (IllegalAccessException e) {
           if (Reflector.canControlMemberAccessible()) {
             constructor.setAccessible(true);
-            return constructor.newInstance();
+           return constructor.newInstance();
           } else {
             throw e;
           }
         }
       }
+      //根据有参构造器构造对象
       constructor = type.getDeclaredConstructor(constructorArgTypes.toArray(new Class[constructorArgTypes.size()]));
       try {
         return constructor.newInstance(constructorArgs.toArray(new Object[constructorArgs.size()]));
@@ -91,6 +84,8 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
 
   protected Class<?> resolveInterface(Class<?> type) {
     Class<?> classToCreate;
+
+    //如果类型是常见的集合接口，选择它们常见的子类作为创建对象的类型
     if (type == List.class || type == Collection.class || type == Iterable.class) {
       classToCreate = ArrayList.class;
     } else if (type == Map.class) {

@@ -15,17 +15,16 @@
  */
 package org.apache.ibatis.scripting.xmltags;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.StringTokenizer;
-
 import org.apache.ibatis.session.Configuration;
+
+import java.util.*;
 
 /**
  * @author Clinton Begin
+ *
+ * trim节点脚本容器
+ *
+ * 抹除什么缀，加上什么缀
  */
 public class TrimSqlNode implements SqlNode {
 
@@ -46,6 +45,9 @@ public class TrimSqlNode implements SqlNode {
     this.prefixesToOverride = prefixesToOverride;
     this.suffix = suffix;
     this.suffixesToOverride = suffixesToOverride;
+    /**
+     * 需要进行变量替换，所以需要configuration对象
+     */
     this.configuration = configuration;
   }
 

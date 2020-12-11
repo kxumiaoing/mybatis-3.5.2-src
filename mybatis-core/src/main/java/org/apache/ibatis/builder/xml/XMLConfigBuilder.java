@@ -141,14 +141,38 @@ public class XMLConfigBuilder extends BaseBuilder {
        * 解析插件节点
        */
       pluginElement(root.evalNode("plugins"));
+      /**
+       * 解析对象工厂节点
+       */
       objectFactoryElement(root.evalNode("objectFactory"));
+      /**
+       * 解析对象包裹器工厂
+       */
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
+      /**
+       * 解析反射器工厂
+       */
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
+      /**
+       * 将属性设置到Configuration中
+       */
       settingsElement(settings);
       // read it after objectFactory and objectWrapperFactory issue #631
+      /**
+       * 解析环境设置
+       */
       environmentsElement(root.evalNode("environments"));
+      /**
+       * 解析databaseId提供者
+       */
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+      /**
+       * 解析类型处理器
+       */
       typeHandlerElement(root.evalNode("typeHandlers"));
+      /**
+       * 解析Mapper
+       */
       mapperElement(root.evalNode("mappers"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
@@ -241,7 +265,9 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void objectFactoryElement(XNode context) throws Exception {
     if (context != null) {
+        //类的全限定名
       String type = context.getStringAttribute("type");
+      //属性
       Properties properties = context.getChildrenAsProperties();
       ObjectFactory factory = (ObjectFactory) resolveClass(type).newInstance();
       factory.setProperties(properties);
@@ -329,15 +355,20 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void environmentsElement(XNode context) throws Exception {
     if (context != null) {
+        //设置环境id，以外部输入的为主
       if (environment == null) {
         environment = context.getStringAttribute("default");
       }
       for (XNode child : context.getChildren()) {
         String id = child.getStringAttribute("id");
+        //只解析指定的环境
         if (isSpecifiedEnvironment(id)) {
+          //事务工厂
           TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));
+          //数据源工厂
           DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));
           DataSource dataSource = dsFactory.getDataSource();
+          //创建环境
           Environment.Builder environmentBuilder = new Environment.Builder(id)
               .transactionFactory(txFactory)
               .dataSource(dataSource);
@@ -361,6 +392,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
     Environment environment = configuration.getEnvironment();
     if (environment != null && databaseIdProvider != null) {
+        //根据DataSource获取databaseId，并且设置到Configuration中
       String databaseId = databaseIdProvider.getDatabaseId(environment.getDataSource());
       configuration.setDatabaseId(databaseId);
     }
@@ -391,6 +423,7 @@ public class XMLConfigBuilder extends BaseBuilder {
   private void typeHandlerElement(XNode parent) {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
+        //指定一个包名，自动扫描
         if ("package".equals(child.getName())) {
           String typeHandlerPackage = child.getStringAttribute("name");
           typeHandlerRegistry.register(typeHandlerPackage);
@@ -418,6 +451,9 @@ public class XMLConfigBuilder extends BaseBuilder {
   private void mapperElement(XNode parent) throws Exception {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
+        /**
+         * 通过Mapper的包名来解析Mapper
+         */
         if ("package".equals(child.getName())) {
           String mapperPackage = child.getStringAttribute("name");
           configuration.addMappers(mapperPackage);
@@ -425,17 +461,28 @@ public class XMLConfigBuilder extends BaseBuilder {
           String resource = child.getStringAttribute("resource");
           String url = child.getStringAttribute("url");
           String mapperClass = child.getStringAttribute("class");
+          /**
+           * 解析resource指定的xml文件（应用内部文件）中的Mapper
+           */
           if (resource != null && url == null && mapperClass == null) {
             ErrorContext.instance().resource(resource);
             InputStream inputStream = Resources.getResourceAsStream(resource);
+            //解析文件，每一个文件对应一个XMLMapperBuilder
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
             mapperParser.parse();
-          } else if (resource == null && url != null && mapperClass == null) {
+          } else if (resource == null && url != null && mapperClass == null) {//url指定的xml文件
+            /**
+             * 解析url指定的xml文件（应用外部文件）中的Mapper
+             */
             ErrorContext.instance().resource(url);
             InputStream inputStream = Resources.getUrlAsStream(url);
+            //解析文件
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url, configuration.getSqlFragments());
             mapperParser.parse();
-          } else if (resource == null && url == null && mapperClass != null) {
+          } else if (resource == null && url == null && mapperClass != null) {//class指定的class
+            /**
+             * 根据Mapper的全限定名来解析Mapper
+             */
             Class<?> mapperInterface = Resources.classForName(mapperClass);
             configuration.addMapper(mapperInterface);
           } else {
