@@ -22,6 +22,10 @@ import org.apache.ibatis.session.Configuration;
 
 /**
  * @author Clinton Begin
+ *
+ * foreach节点脚本容器
+ *
+ * 通过一些条件来控制子节点脚本生成
  */
 public class ForEachSqlNode implements SqlNode {
   public static final String ITEM_PREFIX = "__frch_";

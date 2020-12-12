@@ -1,0 +1,105 @@
+@startuml
+
+
+class TrimSqlNode implements SqlNode
+note top of SqlNode
+  sql片段
+end note
+
+TrimSqlNode : Configuration configuration
+TrimSqlNode : SqlNode contents
+TrimSqlNode : String prefix
+TrimSqlNode : String suffix
+TrimSqlNode : List<String> prefixesToOverride
+TrimSqlNode : List<String> suffixesToOverride
+note top of TrimSqlNode
+  <trim>标签对应的sql片段
+end note
+
+class SetSqlNode extends TrimSqlNode
+
+SetSqlNode : Configuration configuration
+SetSqlNode : SqlNode contents
+SetSqlNode : String prefix = "SET"
+SetSqlNode : String suffix
+SetSqlNode : List<String> prefixesToOverride
+SetSqlNode : List<String> suffixesToOverride
+note top of SetSqlNode
+  <set>标签对应的sql片段
+end note
+
+class WhereSqlNode extends TrimSqlNode
+
+WhereSqlNode : Configuration configuration
+WhereSqlNode : SqlNode contents
+WhereSqlNode : String prefix = "WHERE"
+WhereSqlNode : String suffix
+WhereSqlNode : List<String> prefixesToOverride
+WhereSqlNode : List<String> suffixesToOverride
+note top of WhereSqlNode
+  <where>标签对应的sql片段
+end note
+
+
+
+
+class MixedSqlNode implements SqlNode
+MixedSqlNode : List<SqlNode> contents
+note top of MixedSqlNode
+  sql片段的集合
+end note
+
+class ForEachSqlNode implements SqlNode
+
+ForEachSqlNode : String collectionExpression
+ForEachSqlNode : SqlNode contents
+ForEachSqlNode : String open
+ForEachSqlNode : String close
+ForEachSqlNode : String separator
+ForEachSqlNode : String item
+ForEachSqlNode : String index
+ForEachSqlNode : Configuration configuration
+note top of ForEachSqlNode
+  <foreach>标签对应的sql片段
+end note
+
+class IfSqlNode implements SqlNode
+
+IfSqlNode : SqlNode contents
+IfSqlNode : String test
+note top of IfSqlNode
+  <if>标签对应的sql片段
+end note
+
+class ChooseSqlNode implements SqlNode
+
+ChooseSqlNode : SqlNode defaultSqlNode
+ChooseSqlNode : List<SqlNode> ifSqlNodes
+note top of ChooseSqlNode
+  <choose>标签对应的sql片段
+end note
+
+class VarDeclSqlNode implements SqlNode
+
+VarDeclSqlNode : String name
+VarDeclSqlNode : String expression
+note top of VarDeclSqlNode
+  <bind>标签内容（不是sql片段，只是一个变量）
+end note
+
+class StaticTextSqlNode implements SqlNode
+
+StaticTextSqlNode : String text
+note top of StaticTextSqlNode
+  sql片段（纯文本）
+end note
+
+class TextSqlNode implements SqlNode
+
+TextSqlNode : String text
+TextSqlNode : Pattern injectionFilter
+note top of TextSqlNode
+  sql片段（动态文本）
+end note
+
+@enduml

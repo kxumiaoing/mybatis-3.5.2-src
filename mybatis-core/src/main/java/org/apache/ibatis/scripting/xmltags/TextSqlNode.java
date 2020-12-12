@@ -40,16 +40,17 @@ public class TextSqlNode implements SqlNode {
     this.injectionFilter = injectionFilter;
   }
 
+  /**
+   * 如果sql片段中包含“${”和“}”，那么这个sql就是动态sql
+   * 因为“${”和“}”可以改变sql的“本意”，比如动态指定查找哪张表
+   */
   public boolean isDynamic() {
     DynamicCheckerTokenParser checker = new DynamicCheckerTokenParser();
-    /**
-     * 这下面两句有什么鸟用？
-     */
     GenericTokenParser parser = createParser(checker);
-    parser.parse(text);
     /**
-     * 直接返回true好吗？可能是为了以后扩展埋点吧
+     * 通过解析来检测是否是动态标签
      */
+    parser.parse(text);
     return checker.isDynamic();
   }
 

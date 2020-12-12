@@ -78,7 +78,7 @@ public class XMLScriptBuilder extends BaseBuilder {
 
   public SqlSource parseScriptNode() {
     /**
-     * 处理动态子节点
+     * sql脚本（所有sql脚本片段）
      */
     MixedSqlNode rootSqlNode = parseDynamicTags(context);
     SqlSource sqlSource;
@@ -90,6 +90,10 @@ public class XMLScriptBuilder extends BaseBuilder {
     return sqlSource;
   }
 
+  /**
+   * 解析sql脚本，一个sql脚本片段对应一个SqlNode，动态脚本（标签）对应一个“复杂”的SqlNode
+   * MixedSqlNode其实就是一个SqlNode集合（List）
+   */
   protected MixedSqlNode parseDynamicTags(XNode node) {
     List<SqlNode> contents = new ArrayList<>();
     /**
@@ -153,7 +157,9 @@ public class XMLScriptBuilder extends BaseBuilder {
 
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
+      //变量名
       final String name = nodeToHandle.getStringAttribute("name");
+      //变量值表达式
       final String expression = nodeToHandle.getStringAttribute("value");
       final VarDeclSqlNode node = new VarDeclSqlNode(name, expression);
       targetContents.add(node);
@@ -224,11 +230,17 @@ public class XMLScriptBuilder extends BaseBuilder {
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
       MixedSqlNode mixedSqlNode = parseDynamicTags(nodeToHandle);
+      //集合expression表达式，需要使用ognl引擎解析对象
       String collection = nodeToHandle.getStringAttribute("collection");
+      //集合里面元素的引用名
       String item = nodeToHandle.getStringAttribute("item");
+      //集合迭代索引的引用名
       String index = nodeToHandle.getStringAttribute("index");
+      //前缀
       String open = nodeToHandle.getStringAttribute("open");
+      //后缀
       String close = nodeToHandle.getStringAttribute("close");
+      //集合元素生成脚本后的分割符
       String separator = nodeToHandle.getStringAttribute("separator");
       ForEachSqlNode forEachSqlNode = new ForEachSqlNode(configuration, mixedSqlNode, collection, index, item, open, close, separator);
       targetContents.add(forEachSqlNode);

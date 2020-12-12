@@ -21,7 +21,7 @@
     <dependencies>
         <dependency>
             <groupId>org.xumiao.reading</groupId>
-            <artifactId>mybatis</artifactId>
+            <artifactId>mybatis-core</artifactId>
             <version>3.5.2</version>
         </dependency>
         <dependency>

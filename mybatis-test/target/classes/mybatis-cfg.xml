@@ -3,6 +3,51 @@
         PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
+    <properties resource="config.properties">
+        <property name="name" value="shanghai"/>
+        <property name="city" value="shanghai"/>
+    </properties>
+    <settings>
+        <setting name="cacheEnabled" value="true"/>
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <setting name="multipleResultSetsEnabled" value="true"/>
+        <setting name="useColumnLabel" value="true"/>
+        <setting name="useGeneratedKeys" value="false"/>
+        <setting name="autoMappingBehavior" value="PARTIAL"/>
+        <setting name="autoMappingUnknownColumnBehavior" value="WARNING"/>
+        <setting name="defaultExecutorType" value="SIMPLE"/>
+        <setting name="defaultStatementTimeout" value="25"/>
+        <setting name="defaultFetchSize" value="100"/>
+        <setting name="safeRowBoundsEnabled" value="false"/>
+        <setting name="mapUnderscoreToCamelCase" value="false"/>
+        <setting name="localCacheScope" value="SESSION"/>
+        <setting name="jdbcTypeForNull" value="OTHER"/>
+        <setting name="lazyLoadTriggerMethods" value="equals,clone,hashCode,toString"/>
+    </settings>
+    <typeAliases>
+        <package name="domain.blog"/>
+        <typeAlias alias="Author" type="domain.blog.Author"/>
+        <typeAlias alias="Blog" type="domain.blog.Blog"/>
+        <typeAlias alias="Comment" type="domain.blog.Comment"/>
+        <typeAlias alias="Post" type="domain.blog.Post"/>
+        <typeAlias alias="Section" type="domain.blog.Section"/>
+        <typeAlias alias="Tag" type="domain.blog.Tag"/>
+    </typeAliases>
+    <plugins>
+        <plugin interceptor="org.mybatis.example.ExamplePlugin">
+            <property name="someProperty" value="100"/>
+        </plugin>
+    </plugins>
+    <objectFactory type="org.mybatis.example.ExampleObjectFactory">
+        <property name="someProperty" value="100"/>
+    </objectFactory>
+    <!-- 与Mapper中的databaseId对应  -->
+    <databaseIdProvider type="DB_VENDOR">
+        <!-- 属性只是一些别名而已 -->
+        <property name="SQL Server" value="sqlserver"/>
+        <property name="DB2" value="db2"/>
+        <property name="Oracle" value="oracle" />
+    </databaseIdProvider>
     <environments default="development">
         <environment id="development">
             <transactionManager type="JDBC"/>
@@ -14,7 +59,32 @@
             </dataSource>
         </environment>
     </environments>
+    <typeHandlers>
+        <package name="org.mybatis.example"/>
+        <typeHandler handler="org.mybatis.example.ExampleTypeHandler"/>
+    </typeHandlers>
     <mappers>
         <mapper resource="org/mybatis/example/BlogMapper.xml"/>
     </mappers>
+
+    <!--
+    <mappers>
+        <mapper resource="org/mybatis/builder/AuthorMapper.xml"/>
+        <mapper resource="org/mybatis/builder/BlogMapper.xml"/>
+        <mapper resource="org/mybatis/builder/PostMapper.xml"/>
+    </mappers>
+    <mappers>
+        <mapper url="file:///var/mappers/AuthorMapper.xml"/>
+        <mapper url="file:///var/mappers/BlogMapper.xml"/>
+        <mapper url="file:///var/mappers/PostMapper.xml"/>
+    </mappers>
+    <mappers>
+        <mapper class="org.mybatis.builder.AuthorMapper"/>
+        <mapper class="org.mybatis.builder.BlogMapper"/>
+        <mapper class="org.mybatis.builder.PostMapper"/>
+    </mappers>
+    <mappers>
+        <package name="org.mybatis.builder"/>
+    </mappers>
+    -->
 </configuration>

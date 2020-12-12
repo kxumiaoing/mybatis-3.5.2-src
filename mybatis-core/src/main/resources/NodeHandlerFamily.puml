@@ -1,0 +1,43 @@
+@startuml
+
+class BindHandler implements NodeHandler
+note top of BindHandler
+  处理<bind>标签
+end note
+
+class TrimHandler implements NodeHandler
+note top of TrimHandler
+  处理<trim>标签
+end note
+
+class WhereHandler implements NodeHandler
+note top of WhereHandler
+  处理<where>标签
+end note
+
+class SetHandler implements NodeHandler
+note top of SetHandler
+  处理<set>标签
+end note
+
+class ForEachHandler implements NodeHandler
+note top of ForEachHandler
+  处理<foreach>标签
+end note
+
+class IfHandler implements NodeHandler
+note top of IfHandler
+  处理<if>和<when>标签
+end note
+
+class OtherwiseHandler implements NodeHandler
+note top of OtherwiseHandler
+  处理<otherwise>标签
+end note
+
+class ChooseHandler implements NodeHandler
+note top of ChooseHandler
+  处理<choose>标签
+end note
+
+@enduml
