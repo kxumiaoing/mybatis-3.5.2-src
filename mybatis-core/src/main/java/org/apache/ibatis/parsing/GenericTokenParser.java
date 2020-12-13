@@ -30,6 +30,9 @@ public class GenericTokenParser {
     this.handler = handler;
   }
 
+  /**
+   * 进行参数名到参数值的替换
+   */
   public String parse(String text) {
     //空值
     if (text == null || text.isEmpty()) {
@@ -86,7 +89,7 @@ public class GenericTokenParser {
           builder.append(src, start, src.length - start);
           offset = src.length;
         } else {
-          //解析expression
+          //使用TokenHanlder解析expression的值
           builder.append(handler.handleToken(expression.toString()));
           //跳过closeToken
           offset = end + closeToken.length();

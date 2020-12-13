@@ -1,0 +1,22 @@
+@startuml
+
+class DynamicSqlSource implements SqlSource
+note top of SqlSource
+   sql脚本容器
+end note
+
+DynamicSqlSource : Configuration configuration
+DynamicSqlSource : SqlNode rootSqlNode
+note top of DynamicSqlSource
+    动态sql脚本容器（包含“${”和“}”）
+end note
+
+class RawSqlSource implements SqlSource
+
+RawSqlSource : SqlSource sqlSource
+
+note top of RawSqlSource
+    静态sql脚本容器（尽管不包含“${”和“}”，但是可能包含“#{”和“}”）
+end note
+
+@enduml

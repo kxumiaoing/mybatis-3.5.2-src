@@ -83,8 +83,14 @@ public class XMLScriptBuilder extends BaseBuilder {
     MixedSqlNode rootSqlNode = parseDynamicTags(context);
     SqlSource sqlSource;
     if (isDynamic) {
+      /**
+       * 动态sql脚本
+       */
       sqlSource = new DynamicSqlSource(configuration, rootSqlNode);
     } else {
+      /**
+       * 静态sql脚本
+       */
       sqlSource = new RawSqlSource(configuration, rootSqlNode, parameterType);
     }
     return sqlSource;
@@ -115,12 +121,17 @@ public class XMLScriptBuilder extends BaseBuilder {
          */
         TextSqlNode textSqlNode = new TextSqlNode(data);
 
+        /**
+         * 如果sql脚本片段中有个“${”和“}”的，那么这个片段就是动态sql脚本片段
+         * 最终生成的是DynamicSqlSource
+         */
         if (textSqlNode.isDynamic()) {
           contents.add(textSqlNode);
           isDynamic = true;
         } else {
           /**
-           * 这个分支目前来看不会走
+           * 纯文本sql脚本片段
+           * 如果所有的SqlNode都是StaticTextSqlNode，那么最终生成的就是RawSqlSource
            */
           contents.add(new StaticTextSqlNode(data));
         }
@@ -140,9 +151,16 @@ public class XMLScriptBuilder extends BaseBuilder {
          * 处理生成sqlNode
          */
         handler.handleNode(child, contents);
+        /**
+         * 有子标签的一定是动态脚本
+         */
         isDynamic = true;
       }
     }
+
+    /**
+     * MixedSqlNode是SqlNode的集合
+     */
     return new MixedSqlNode(contents);
   }
 

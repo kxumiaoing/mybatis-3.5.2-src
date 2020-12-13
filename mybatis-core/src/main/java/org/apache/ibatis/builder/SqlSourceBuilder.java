@@ -30,6 +30,7 @@ import org.apache.ibatis.type.JdbcType;
 
 /**
  * @author Clinton Begin
+ * 对sql语句进行参数注入（参数使用“#{”和“}”包裹）
  */
 public class SqlSourceBuilder extends BaseBuilder {
 
@@ -39,19 +40,42 @@ public class SqlSourceBuilder extends BaseBuilder {
     super(configuration);
   }
 
+  /**
+   * @param originalSql 需要进行参数注入的sql脚本（包含“#{”和“}”）
+   * @param parameterType 参数来源对象（sql中所有的参数都是该对象的属性），把这个对象看作是Map就行
+   * @param additionalParameters 附加参数
+   */
   public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, Object> additionalParameters) {
     ParameterMappingTokenHandler handler = new ParameterMappingTokenHandler(configuration, parameterType, additionalParameters);
+    /**
+     * sql语句中参数变量是用使用“#{”和“}”包裹的，最终需要进行参数注入（变量替换）
+     */
     GenericTokenParser parser = new GenericTokenParser("#{", "}", handler);
+
+    /**
+     * sql语句进行参数注入（参数替换）
+     */
     String sql = parser.parse(originalSql);
     return new StaticSqlSource(configuration, sql, handler.getParameterMappings());
   }
 
+  /**
+   * 宿主类对sql语句进行参数注入的时候，辅助对参数求值
+   */
   private static class ParameterMappingTokenHandler extends BaseBuilder implements TokenHandler {
 
     private List<ParameterMapping> parameterMappings = new ArrayList<>();
+    /**
+     * 参数来源的对象类型
+     */
     private Class<?> parameterType;
     private MetaObject metaParameters;
 
+    /**
+     * @param configuration configuration对象
+     * @param parameterType 参数来源对象（sql中所有的参数都是该对象的属性），把这个对象看作是Map就行
+     * @param additionalParameters 附加参数
+     */
     public ParameterMappingTokenHandler(Configuration configuration, Class<?> parameterType, Map<String, Object> additionalParameters) {
       super(configuration);
       this.parameterType = parameterType;
@@ -63,8 +87,14 @@ public class SqlSourceBuilder extends BaseBuilder {
     }
 
     @Override
+    /**
+     * content是参数的名字
+     */
     public String handleToken(String content) {
       parameterMappings.add(buildParameterMapping(content));
+      /**
+       * 将参数替换成？，这是jdbc的参数注入方式
+       */
       return "?";
     }
 

@@ -21,7 +21,7 @@ package org.apache.ibatis.mapping;
  *
  * @author Clinton Begin
  *
- * 对应insert/update/delete/select标签
+ * 完整的sql脚本，sql脚本是由sql脚本片段（SqlNode）构成的
  */
 public interface SqlSource {
 

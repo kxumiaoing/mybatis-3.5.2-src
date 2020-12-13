@@ -1,0 +1,49 @@
+@startuml
+
+class XMLConfigBuilder extends BaseBuilder
+
+note top of BaseBuilder
+    基础builder，主要功能就是将字符串转换成类或者对象
+end note
+
+note top of XMLConfigBuilder
+    解析配置文件（xml文件），构建Configuration对象
+end note
+
+class XMLMapperBuilder extends BaseBuilder
+
+note top of XMLMapperBuilder
+    解析Mapper配置文件（xml文件）
+end note
+
+class MapperBuilderAssistant extends BaseBuilder
+
+note top of MapperBuilderAssistant
+    协助解析Mapper配置文件（xml文件），主要是实例化Mapper使用到脚手架对象
+end note
+
+class XMLStatementBuilder extends BaseBuilder
+
+note top of XMLStatementBuilder
+    解析sql语句，对应mapper配置文件中的insert/update/delete/select标签
+end note
+
+class XMLScriptBuilder extends BaseBuilder
+
+note top of XMLScriptBuilder
+    解析sql脚本片段，拼接成完整的sql语句
+end note
+
+class SqlSourceBuilder extends BaseBuilder
+
+note top of SqlSourceBuilder
+    解析sql语句，主要是对sql语句参数注入（参数使用“#{”和“}”包裹）
+end note
+
+class ParameterMappingTokenHandler extends BaseBuilder
+
+note top of ParameterMappingTokenHandler
+    在对sql进行参数注入时，辅助求解参数的值
+end note
+
+@enduml

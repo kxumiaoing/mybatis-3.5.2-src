@@ -39,6 +39,9 @@ public class DynamicContext {
   }
 
   private final ContextMap bindings;
+  /**
+   * 内部使用StringBuilder拼接字符串
+   */
   private final StringJoiner sqlBuilder = new StringJoiner(" ");
   private int uniqueNumber = 0;
 
@@ -62,10 +65,16 @@ public class DynamicContext {
     bindings.put(name, value);
   }
 
+  /**
+   * 使用StringJoiner将sql片段拼接成完整的sql语句
+   */
   public void appendSql(String sql) {
     sqlBuilder.add(sql);
   }
 
+  /**
+   * 返回完整sql语句
+   */
   public String getSql() {
     return sqlBuilder.toString().trim();
   }

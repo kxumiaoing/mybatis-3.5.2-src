@@ -31,6 +31,10 @@ public class StaticTextSqlNode implements SqlNode {
 
   @Override
   public boolean apply(DynamicContext context) {
+    /**
+     * 将sql脚本片段拼接到DynamicContext中
+     * DynamicContext最终使用StringJoiner将所有的sql脚本片段拼接成完成的sql语句
+     */
     context.appendSql(text);
     return true;
   }

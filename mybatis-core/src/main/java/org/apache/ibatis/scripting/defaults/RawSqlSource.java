@@ -31,23 +31,47 @@ import org.apache.ibatis.session.Configuration;
  *
  * @since 3.2.0
  * @author Eduardo Macarron
+ *
+ * 静态sql脚本容器
+ * 尽管不包含“${”和“}”，但是可能包含“#{”和“}”
  */
 public class RawSqlSource implements SqlSource {
 
   private final SqlSource sqlSource;
 
   public RawSqlSource(Configuration configuration, SqlNode rootSqlNode, Class<?> parameterType) {
+    /**
+     * getSql将sql脚本片段（SqlNode）拼接成完整的sql语句
+     */
     this(configuration, getSql(configuration, rootSqlNode), parameterType);
   }
 
+  /**
+   * sql就是sql语句，语句中包含“#{”和“}”，需要进行变量替换
+   */
   public RawSqlSource(Configuration configuration, String sql, Class<?> parameterType) {
     SqlSourceBuilder sqlSourceParser = new SqlSourceBuilder(configuration);
+    /**
+     * parameterType是参数类型，通过parameterType对象对sql语句进行动态注入参数
+     */
     Class<?> clazz = parameterType == null ? Object.class : parameterType;
+    /**
+     * HashMap里面放的是参数，但是这里HashMap是空的，不是真的要进行参数注入
+     */
     sqlSource = sqlSourceParser.parse(sql, clazz, new HashMap<>());
   }
 
+  /**
+   * 将sql脚本片段（SqlNode）拼接成完整的sql脚本
+   */
   private static String getSql(Configuration configuration, SqlNode rootSqlNode) {
     DynamicContext context = new DynamicContext(configuration, null);
+    /**
+     * rootSqlNode是MixedSqlNode，MixedSqlNode是SqlNode的集合
+     * MixedSqlNode的apply方法会迭代依次调用子SqlNode（StaticTextNode）的apply方法
+     * StaticTextNode的apply方法会将sql脚本片段添加到DynamicContext中
+     * DynamicContext中使用StringJoiner将sql脚本片段拼接到一起
+     */
     rootSqlNode.apply(context);
     return context.getSql();
   }

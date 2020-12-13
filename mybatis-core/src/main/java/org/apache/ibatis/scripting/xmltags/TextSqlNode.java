@@ -43,6 +43,7 @@ public class TextSqlNode implements SqlNode {
   /**
    * 如果sql片段中包含“${”和“}”，那么这个sql就是动态sql
    * 因为“${”和“}”可以改变sql的“本意”，比如动态指定查找哪张表
+   * “#{”和“}”不是动态脚本
    */
   public boolean isDynamic() {
     DynamicCheckerTokenParser checker = new DynamicCheckerTokenParser();

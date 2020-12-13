@@ -71,8 +71,14 @@ public class ParameterExpression extends HashMap<String, String> {
     }
   }
 
+  /**
+   * 跳过空格
+   */
   private int skipWS(String expression, int p) {
     for (int i = p; i < expression.length(); i++) {
+      /**
+       * 0x20是空格的16进制
+       */
       if (expression.charAt(i) > 0x20) {
         return i;
       }

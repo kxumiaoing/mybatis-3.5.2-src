@@ -19,7 +19,7 @@ package org.apache.ibatis.scripting.xmltags;
  * @author Frank D. Martinez [mnesarco]
  *
  * 这个不是SqlNode，因为它没有任何sql脚本片段
- * 只是用来定义个变量而已，然后在sql脚本片段中使用
+ * 只是用来定义个变量而已，然后在sql脚本片段中使用，变量名也算是sql脚本中的一部分吧
  */
 public class VarDeclSqlNode implements SqlNode {
 

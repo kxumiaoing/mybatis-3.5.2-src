@@ -29,6 +29,9 @@ public class MixedSqlNode implements SqlNode {
 
   @Override
   public boolean apply(DynamicContext context) {
+    /**
+     * SqlNode集合循环执行SqlNode.apply方法
+     */
     contents.forEach(node -> node.apply(context));
     return true;
   }

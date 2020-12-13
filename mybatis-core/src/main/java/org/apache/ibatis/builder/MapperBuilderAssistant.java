@@ -31,6 +31,7 @@ import java.util.*;
 
 /**
  * @author Clinton Begin
+ * 协助解析Mapper配置文件，主要用来实例化Mappper中的对象
  */
 public class MapperBuilderAssistant extends BaseBuilder {
 
@@ -379,7 +380,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
       boolean lazy) {
       //javaType
     Class<?> javaTypeClass = resolveResultJavaType(resultType, property, javaType);
-    //tyepHandler
+    //typeHandler
     TypeHandler<?> typeHandlerInstance = resolveTypeHandler(javaTypeClass, typeHandler);
     List<ResultMapping> composites;
     if ((nestedSelect == null || nestedSelect.isEmpty()) && (foreignColumn == null || foreignColumn.isEmpty())) {
