@@ -31,6 +31,9 @@ public class SetSqlNode extends TrimSqlNode {
 
   private static final List<String> COMMA = Collections.singletonList(",");
 
+  /**
+   * 如此简单，大前缀为“SET”，小前/后缀为“,”
+   */
   public SetSqlNode(Configuration configuration,SqlNode contents) {
     super(configuration, contents, "SET", COMMA, null, COMMA);
   }

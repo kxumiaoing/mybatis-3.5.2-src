@@ -15,8 +15,6 @@
  */
 package org.apache.ibatis.scripting.defaults;
 
-import java.util.HashMap;
-
 import org.apache.ibatis.builder.SqlSourceBuilder;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.SqlSource;
@@ -24,6 +22,8 @@ import org.apache.ibatis.scripting.xmltags.DynamicContext;
 import org.apache.ibatis.scripting.xmltags.DynamicSqlSource;
 import org.apache.ibatis.scripting.xmltags.SqlNode;
 import org.apache.ibatis.session.Configuration;
+
+import java.util.HashMap;
 
 /**
  * Static SqlSource. It is faster than {@link DynamicSqlSource} because mappings are
@@ -34,9 +34,15 @@ import org.apache.ibatis.session.Configuration;
  *
  * 静态sql脚本容器
  * 尽管不包含“${”和“}”，但是可能包含“#{”和“}”
+ * 代理StaticSqlSource
+ * 已经将“#{”和“}”解析成了ParameterMapping
  */
 public class RawSqlSource implements SqlSource {
 
+  /**
+   * sqlSource其实是StaticSqlSource
+   * 此处持有SqlSource的引用是因为这个对象中的sql语句是静态的，并且已经解析完成，不需要重复解析，用的时候直接注入参数就可以
+   */
   private final SqlSource sqlSource;
 
   public RawSqlSource(Configuration configuration, SqlNode rootSqlNode, Class<?> parameterType) {
@@ -56,13 +62,15 @@ public class RawSqlSource implements SqlSource {
      */
     Class<?> clazz = parameterType == null ? Object.class : parameterType;
     /**
-     * HashMap里面放的是参数，但是这里HashMap是空的，不是真的要进行参数注入
+     * 构建StaticSqlSource：将sql语句中的参数替换成“?”，并且解析成ParameterMapping
      */
     sqlSource = sqlSourceParser.parse(sql, clazz, new HashMap<>());
   }
 
   /**
    * 将sql脚本片段（SqlNode）拼接成完整的sql脚本
+   * 这个方法在构造方法中调用，正好印证了这个对象里面包含的是静态sql，
+   * 即源sql语句中不包含“${”和“}”，是不会随着参数变化而变化的
    */
   private static String getSql(Configuration configuration, SqlNode rootSqlNode) {
     DynamicContext context = new DynamicContext(configuration, null);

@@ -15,15 +15,18 @@
  */
 package org.apache.ibatis.mapping;
 
-import java.sql.ResultSet;
-
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
+import java.sql.ResultSet;
+
 /**
  * @author Clinton Begin
+ *
+ * sql脚本中的参数信息
+ *
  */
 public class ParameterMapping {
 
@@ -52,6 +55,11 @@ public class ParameterMapping {
       parameterMapping.mode = ParameterMode.IN;
     }
 
+    /**
+     * @param configuration Configuration对象
+     * @param property 属性名字
+     * @param javaType 属性类型（推断出来的）
+     */
     public Builder(Configuration configuration, String property, Class<?> javaType) {
       parameterMapping.configuration = configuration;
       parameterMapping.property = property;
@@ -100,19 +108,31 @@ public class ParameterMapping {
     }
 
     public ParameterMapping build() {
+      /**
+       * 确定TypeHandler
+       */
       resolveTypeHandler();
+      /**
+       * 验证
+       */
       validate();
       return parameterMapping;
     }
 
     private void validate() {
       if (ResultSet.class.equals(parameterMapping.javaType)) {
+        /**
+         * 如果参数是游标，那么必须执行游标对应的resultMap
+         */
         if (parameterMapping.resultMapId == null) {
           throw new IllegalStateException("Missing resultmap in property '"
               + parameterMapping.property + "'.  "
               + "Parameters of type java.sql.ResultSet require a resultmap.");
         }
       } else {
+        /**
+         * TypeHandler必须有
+         */
         if (parameterMapping.typeHandler == null) {
           throw new IllegalStateException("Type handler was null on parameter mapping for property '"
             + parameterMapping.property + "'. It was either not specified and/or could not be found for the javaType ("
@@ -125,6 +145,9 @@ public class ParameterMapping {
       if (parameterMapping.typeHandler == null && parameterMapping.javaType != null) {
         Configuration configuration = parameterMapping.configuration;
         TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
+        /**
+         * 此处查找对应的TypeHandler，值得关注点
+         */
         parameterMapping.typeHandler = typeHandlerRegistry.getTypeHandler(parameterMapping.javaType, parameterMapping.jdbcType);
       }
     }

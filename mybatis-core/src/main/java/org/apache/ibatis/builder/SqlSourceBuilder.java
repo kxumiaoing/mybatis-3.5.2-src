@@ -30,7 +30,8 @@ import org.apache.ibatis.type.JdbcType;
 
 /**
  * @author Clinton Begin
- * 对sql语句进行参数注入（参数使用“#{”和“}”包裹）
+ * 将sql语句中的参数（参数使用“#{”和“}”包裹）抠出来，包装成ParameterMapping，
+ * 并且将参数使用“?”替换，将sql变成jdbc规范的sql
  */
 public class SqlSourceBuilder extends BaseBuilder {
 
@@ -42,8 +43,8 @@ public class SqlSourceBuilder extends BaseBuilder {
 
   /**
    * @param originalSql 需要进行参数注入的sql脚本（包含“#{”和“}”）
-   * @param parameterType 参数来源对象（sql中所有的参数都是该对象的属性），把这个对象看作是Map就行
-   * @param additionalParameters 附加参数
+   * @param parameterType 参数类型
+   * @param additionalParameters 实际参数或者实际类型的包装
    */
   public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, Object> additionalParameters) {
     ParameterMappingTokenHandler handler = new ParameterMappingTokenHandler(configuration, parameterType, additionalParameters);
@@ -53,9 +54,12 @@ public class SqlSourceBuilder extends BaseBuilder {
     GenericTokenParser parser = new GenericTokenParser("#{", "}", handler);
 
     /**
-     * sql语句进行参数注入（参数替换）
+     * sql语句进行参数注入（参数替换成了？）
      */
     String sql = parser.parse(originalSql);
+    /**
+     * 使用sql（满足jdbc规范，包含“?”的），参数信息列表构造SqlSource
+     */
     return new StaticSqlSource(configuration, sql, handler.getParameterMappings());
   }
 
@@ -73,8 +77,11 @@ public class SqlSourceBuilder extends BaseBuilder {
 
     /**
      * @param configuration configuration对象
-     * @param parameterType 参数来源对象（sql中所有的参数都是该对象的属性），把这个对象看作是Map就行
-     * @param additionalParameters 附加参数
+     * @param parameterType 入参类型
+     * @param additionalParameters 实际参数或者实际参数的包装
+     *
+     * 根据入参类型和实际参数来推断属性的类型
+     *
      */
     public ParameterMappingTokenHandler(Configuration configuration, Class<?> parameterType, Map<String, Object> additionalParameters) {
       super(configuration);
@@ -91,6 +98,9 @@ public class SqlSourceBuilder extends BaseBuilder {
      * content是参数的名字
      */
     public String handleToken(String content) {
+      /**
+       * 将sql中参数的信息收集起来
+       */
       parameterMappings.add(buildParameterMapping(content));
       /**
        * 将参数替换成？，这是jdbc的参数注入方式
@@ -99,18 +109,30 @@ public class SqlSourceBuilder extends BaseBuilder {
     }
 
     private ParameterMapping buildParameterMapping(String content) {
+      /**
+       * 参数表达式解析结果（Map）
+       */
       Map<String, String> propertiesMap = parseParameterMapping(content);
+      //属性名
       String property = propertiesMap.get("property");
+      /**
+       *
+       */
       Class<?> propertyType;
       if (metaParameters.hasGetter(property)) { // issue #448 get type from additional params
+        //根据提供参数的对象的getter方法确定属性的类型
         propertyType = metaParameters.getGetterType(property);
       } else if (typeHandlerRegistry.hasTypeHandler(parameterType)) {
+        //有对应的TypeHandler说明入参不是一个“复杂”的对象，而是事实上的属性，参数类型就是属性类型
         propertyType = parameterType;
       } else if (JdbcType.CURSOR.name().equals(propertiesMap.get("jdbcType"))) {
+          //jdbcType指定的类型如果是游标，那么属性类型就是ResultSet
         propertyType = java.sql.ResultSet.class;
       } else if (property == null || Map.class.isAssignableFrom(parameterType)) {
+          //不知道属性的类型
         propertyType = Object.class;
       } else {
+          //根据参数类型，通过getter来确定属性的类型
         MetaClass metaClass = MetaClass.forClass(parameterType, configuration.getReflectorFactory());
         if (metaClass.hasGetter(property)) {
           propertyType = metaClass.getGetterType(property);
@@ -118,9 +140,16 @@ public class SqlSourceBuilder extends BaseBuilder {
           propertyType = Object.class;
         }
       }
+
+      /**
+       * 使用参数的信息实例化一个ParameterMapping对象
+       */
       ParameterMapping.Builder builder = new ParameterMapping.Builder(configuration, property, propertyType);
       Class<?> javaType = propertyType;
       String typeHandlerAlias = null;
+      /**
+       * 先推断，后补充（用户明确指定）
+       */
       for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
         String name = entry.getKey();
         String value = entry.getValue();
@@ -142,6 +171,9 @@ public class SqlSourceBuilder extends BaseBuilder {
         } else if ("property".equals(name)) {
           // Do Nothing
         } else if ("expression".equals(name)) {
+          /**
+           * sql语句中的参数暂时不支持表达式
+           */
           throw new BuilderException("Expression based parameters are not supported yet");
         } else {
           throw new BuilderException("An invalid property '" + name + "' was found in mapping #{" + content + "}.  Valid properties are " + PARAMETER_PROPERTIES);
@@ -155,6 +187,9 @@ public class SqlSourceBuilder extends BaseBuilder {
 
     private Map<String, String> parseParameterMapping(String content) {
       try {
+        /**
+         * 参数表达式解析结果（Map）
+         */
         return new ParameterExpression(content);
       } catch (BuilderException ex) {
         throw ex;

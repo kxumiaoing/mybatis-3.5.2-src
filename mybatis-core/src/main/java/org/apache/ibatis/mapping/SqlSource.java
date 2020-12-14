@@ -21,10 +21,13 @@ package org.apache.ibatis.mapping;
  *
  * @author Clinton Begin
  *
- * 完整的sql脚本，sql脚本是由sql脚本片段（SqlNode）构成的
+ * sql语句信息（sql语句加上周围的参数信息）
  */
 public interface SqlSource {
 
+  /**
+   * @param parameterObject 正规提供参数值的对象（还有附加参数）
+   */
   BoundSql getBoundSql(Object parameterObject);
 
 }

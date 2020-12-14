@@ -30,6 +30,8 @@ import java.util.HashMap;
  * </pre>
  *
  * @author Frank D. Martinez [mnesarco]
+ *
+ * sql脚本中参数表达式解析结果，存放在Map中
  */
 public class ParameterExpression extends HashMap<String, String> {
 
@@ -40,17 +42,30 @@ public class ParameterExpression extends HashMap<String, String> {
   }
 
   private void parse(String expression) {
+    //跳过不显示字符
     int p = skipWS(expression, 0);
     if (expression.charAt(p) == '(') {
+      /**
+       * #{}里面是表达式
+       */
       expression(expression, p + 1);
     } else {
+      /**
+       * 属性
+       */
       property(expression, p);
     }
   }
 
+  /**
+   * 与property方法类型，区别在于property中属性名位置上放着表达式（以为“(”和“)”包裹起来）
+   */
   private void expression(String expression, int left) {
     int match = 1;
     int right = left + 1;
+    /**
+     * 匹配最外层的“(”和“)”
+     */
     while (match > 0) {
       if (expression.charAt(right) == ')') {
         match--;
@@ -65,14 +80,24 @@ public class ParameterExpression extends HashMap<String, String> {
 
   private void property(String expression, int left) {
     if (left < expression.length()) {
+      /**
+       * 第一个“,”或者末尾作为分隔符，分隔符之前的字符串就是属性名字
+       */
       int right = skipUntil(expression, left, ",:");
+
+      /**
+       * key为property，value为属性名字
+       */
       put("property", trimmedStr(expression, left, right));
+      /**
+       * 可能存在的jdbcType
+       */
       jdbcTypeOpt(expression, right);
     }
   }
 
   /**
-   * 跳过空格
+   * 跳过不显示字符
    */
   private int skipWS(String expression, int p) {
     for (int i = p; i < expression.length(); i++) {
@@ -97,11 +122,18 @@ public class ParameterExpression extends HashMap<String, String> {
   }
 
   private void jdbcTypeOpt(String expression, int p) {
+      //跳过不显示字符
     p = skipWS(expression, p);
     if (p < expression.length()) {
       if (expression.charAt(p) == ':') {
+        /**
+         * 属性名和明确的jdbcType之间使用“:”分割
+         */
         jdbcType(expression, p + 1);
       } else if (expression.charAt(p) == ',') {
+        /**
+         * 多个以“,”分割的key=value中可能存在jdbcType
+         */
         option(expression, p + 1);
       } else {
         throw new BuilderException("Parsing error in {" + expression + "} in position " + p);
@@ -109,6 +141,9 @@ public class ParameterExpression extends HashMap<String, String> {
     }
   }
 
+  /**
+   * 使用“:”明确指定jdbcType，jdbcType后面是多个以“,”为分割的key=value
+   */
   private void jdbcType(String expression, int p) {
     int left = skipWS(expression, p);
     int right = skipUntil(expression, left, ",");
@@ -120,23 +155,40 @@ public class ParameterExpression extends HashMap<String, String> {
     option(expression, right + 1);
   }
 
+  /**
+   * 提取以“,”为分割的key=value
+   */
   private void option(String expression, int p) {
     int left = skipWS(expression, p);
     if (left < expression.length()) {
       int right = skipUntil(expression, left, "=");
+      /**
+       * "="前面的
+       */
       String name = trimmedStr(expression, left, right);
       left = right + 1;
       right = skipUntil(expression, left, ",");
+      /**
+       * "="后面的
+       */
       String value = trimmedStr(expression, left, right);
+      /**
+       * 放入Map
+       */
       put(name, value);
+      /**
+       * 继续查找key=value，放入Map
+       */
       option(expression, right + 1);
     }
   }
 
   private String trimmedStr(String str, int start, int end) {
+    //跳过不显示的字符
     while (str.charAt(start) <= 0x20) {
       start++;
     }
+    //跳过不显示的字符
     while (str.charAt(end - 1) <= 0x20) {
       end--;
     }

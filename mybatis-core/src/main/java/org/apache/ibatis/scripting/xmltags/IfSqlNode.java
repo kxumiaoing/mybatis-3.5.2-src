@@ -29,13 +29,22 @@ public class IfSqlNode implements SqlNode {
   private final SqlNode contents;
 
   public IfSqlNode(SqlNode contents, String test) {
+    //测试条件表达式
     this.test = test;
+    //实际的SqlNode
     this.contents = contents;
+    //表达式解析器
     this.evaluator = new ExpressionEvaluator();
   }
 
   @Override
+  /**
+   * 使用Ognl求解表达式的值，这个值会影响sql脚本片段
+   */
   public boolean apply(DynamicContext context) {
+    /**
+     * context.getBindings()是ContextMap，它包裹了实际入参参数
+     */
     if (evaluator.evaluateBoolean(test, context.getBindings())) {
       contents.apply(context);
       return true;

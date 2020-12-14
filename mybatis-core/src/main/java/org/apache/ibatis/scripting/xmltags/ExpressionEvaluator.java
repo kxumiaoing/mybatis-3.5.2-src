@@ -15,19 +15,25 @@
  */
 package org.apache.ibatis.scripting.xmltags;
 
+import org.apache.ibatis.builder.BuilderException;
+
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ibatis.builder.BuilderException;
-
 /**
  * @author Clinton Begin
+ *
+ * 表达式解析器
  */
 public class ExpressionEvaluator {
 
+  /**
+   * @param expression 表达式
+   * @param parameterObject 参数对象或者它的包装
+   */
   public boolean evaluateBoolean(String expression, Object parameterObject) {
     Object value = OgnlCache.getValue(expression, parameterObject);
     if (value instanceof Boolean) {
@@ -39,14 +45,27 @@ public class ExpressionEvaluator {
     return value != null;
   }
 
+  /**
+   * @param expression 表达式
+   * @param parameterObject 参数对象或者它的包装
+   */
   public Iterable<?> evaluateIterable(String expression, Object parameterObject) {
+    /**
+     * 没什么特殊的，先求值（集合）
+     */
     Object value = OgnlCache.getValue(expression, parameterObject);
     if (value == null) {
       throw new BuilderException("The expression '" + expression + "' evaluated to a null value.");
     }
+    /**
+     * Iterable接口
+     */
     if (value instanceof Iterable) {
       return (Iterable<?>) value;
     }
+    /**
+     * 数组，转换成List
+     */
     if (value.getClass().isArray()) {
       // the array may be primitive, so Arrays.asList() may throw
       // a ClassCastException (issue 209).  Do the work manually
@@ -59,6 +78,9 @@ public class ExpressionEvaluator {
       }
       return answer;
     }
+    /**
+     * Map集合
+     */
     if (value instanceof Map) {
       return ((Map) value).entrySet();
     }

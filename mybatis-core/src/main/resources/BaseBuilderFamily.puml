@@ -37,13 +37,13 @@ end note
 class SqlSourceBuilder extends BaseBuilder
 
 note top of SqlSourceBuilder
-    解析sql语句，主要是对sql语句参数注入（参数使用“#{”和“}”包裹）
+    解析sql语句中的参数（参数使用“#{”和“}”包裹）
 end note
 
 class ParameterMappingTokenHandler extends BaseBuilder
 
 note top of ParameterMappingTokenHandler
-    在对sql进行参数注入时，辅助求解参数的值
+    sql语句中参数解析辅助类
 end note
 
 @enduml

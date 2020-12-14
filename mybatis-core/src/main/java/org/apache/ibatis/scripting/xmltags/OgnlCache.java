@@ -15,13 +15,12 @@
  */
 package org.apache.ibatis.scripting.xmltags;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import ognl.Ognl;
 import ognl.OgnlException;
-
 import org.apache.ibatis.builder.BuilderException;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Caches OGNL parsed expressions.
@@ -40,6 +39,11 @@ public final class OgnlCache {
     // Prevent Instantiation of Static Class
   }
 
+  /**
+   *
+   * @param expression 表达式
+   * @param root 参数对象或者它的包装
+   */
   public static Object getValue(String expression, Object root) {
     try {
       Map context = Ognl.createDefaultContext(root, MEMBER_ACCESS, CLASS_RESOLVER, null);
@@ -49,6 +53,9 @@ public final class OgnlCache {
     }
   }
 
+  /**
+   * 有缓存，读缓存，没有缓存，开始使用Ognl求值，并且加入缓存
+   */
   private static Object parseExpression(String expression) throws OgnlException {
     Object node = expressionCache.get(expression);
     if (node == null) {

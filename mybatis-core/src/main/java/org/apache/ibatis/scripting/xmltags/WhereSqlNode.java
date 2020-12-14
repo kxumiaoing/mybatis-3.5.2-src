@@ -31,6 +31,9 @@ public class WhereSqlNode extends TrimSqlNode {
 
   private static List<String> prefixList = Arrays.asList("AND ","OR ","AND\n", "OR\n", "AND\r", "OR\r", "AND\t", "OR\t");
 
+  /**
+   * 如此简单，大前缀为“WHERE”，小前/后缀为“AND”或者“OR”
+   */
   public WhereSqlNode(Configuration configuration, SqlNode contents) {
     super(configuration, contents, "WHERE", prefixList, null, null);
   }

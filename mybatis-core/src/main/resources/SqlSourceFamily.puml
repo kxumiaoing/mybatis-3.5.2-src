@@ -2,13 +2,14 @@
 
 class DynamicSqlSource implements SqlSource
 note top of SqlSource
-   sql脚本容器
+   sql脚本信息容器
 end note
 
 DynamicSqlSource : Configuration configuration
 DynamicSqlSource : SqlNode rootSqlNode
 note top of DynamicSqlSource
     动态sql脚本容器（包含“${”和“}”）
+    sql脚本（包含在StaticSqlSource内）需要在使用sql脚本时根据入参动态生成
 end note
 
 class RawSqlSource implements SqlSource
@@ -16,7 +17,18 @@ class RawSqlSource implements SqlSource
 RawSqlSource : SqlSource sqlSource
 
 note top of RawSqlSource
-    静态sql脚本容器（尽管不包含“${”和“}”，但是可能包含“#{”和“}”）
+    静态sql脚本容器（不包含“${”和“}”）
+    sql脚本（包含在StaticSqlSource内）在对象构建时就已经拼接好
+end note
+
+class StaticSqlSource implements SqlSource
+
+StaticSqlSource : String sql
+StaticSqlSource : List<ParameterMapping> parameterMappings
+StaticSqlSource : Configuration configuration
+
+note top of StaticSqlSource
+    jdbc规范的sql脚本容器：sql脚本（包含“?”）和参数描述信息
 end note
 
 @enduml
