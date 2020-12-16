@@ -53,17 +53,40 @@ public class ForEachSqlNode implements SqlNode {
   }
 
   @Override
+  /**
+   * context中包含了实际入参
+   */
   public boolean apply(DynamicContext context) {
+    /**
+     * context.getBindings()是ContextMap，不仅包含实际入参，而且包含<bind>标签绑定的参数
+     */
     Map<String, Object> bindings = context.getBindings();
+    /**
+     * 通过ognl求值（集合），将值转换成iterable对象
+     */
     final Iterable<?> iterable = evaluator.evaluateIterable(collectionExpression, bindings);
     if (!iterable.iterator().hasNext()) {
       return true;
     }
     boolean first = true;
+    /**
+     * 将前缀添加到sql中
+     */
     applyOpen(context);
     int i = 0;
+    /**
+     * 通过foreach拼接sql片段
+     */
     for (Object o : iterable) {
+      /**
+       * 保存老的Context
+       */
       DynamicContext oldContext = context;
+      /**
+       * 处理分隔符前缀
+       * 由于foreach每次迭代都需要将index和item绑定到上下文，最终是绑定到oldContext中
+       * 为了处理分隔符前缀（仅仅是为了这个目的，因为绑定最终还是绑到底层的Context上了），每次都创建新的Context，着实有点浪费
+       */
       if (first || separator == null) {
         context = new PrefixedContext(context, "");
       } else {
@@ -74,20 +97,38 @@ public class ForEachSqlNode implements SqlNode {
       if (o instanceof Map.Entry) {
         @SuppressWarnings("unchecked")
         Map.Entry<Object, Object> mapEntry = (Map.Entry<Object, Object>) o;
+        /**
+         * 将index和item绑定到上下文中
+         * 如果集合是Map，那么index为key
+         */
         applyIndex(context, mapEntry.getKey(), uniqueNumber);
         applyItem(context, mapEntry.getValue(), uniqueNumber);
       } else {
+        /**
+         * 将index和item绑定到上下文中
+         * 如果集合不是Map，那么index为自动增长的数字
+         */
         applyIndex(context, i, uniqueNumber);
         applyItem(context, o, uniqueNumber);
       }
       contents.apply(new FilteredDynamicContext(configuration, context, index, item, uniqueNumber));
+      /**
+       * 更新first变量，第一次迭代和后面的迭代在处理分隔符前缀时不一样
+       */
       if (first) {
         first = !((PrefixedContext) context).isPrefixApplied();
       }
       context = oldContext;
       i++;
     }
+    /**
+     * 将后缀添加到sql中
+     */
     applyClose(context);
+    /**
+     * 将index和item从Context中移除，上文的绑定其实都是绑到底层Context上了
+     * 但是没有删除那些特殊的index和item，这些特殊的index和item仅仅是为了做个记录？
+     */
     context.getBindings().remove(item);
     context.getBindings().remove(index);
     return true;
@@ -95,12 +136,18 @@ public class ForEachSqlNode implements SqlNode {
 
   private void applyIndex(DynamicContext context, Object o, int i) {
     if (index != null) {
+      /**
+       * 将index绑定到DynamicContext中
+       */
       context.bind(index, o);
       context.bind(itemizeItem(index, i), o);
     }
   }
 
   private void applyItem(DynamicContext context, Object o, int i) {
+    /**
+     * 将item绑定到DynamicContext中
+     */
     if (item != null) {
       context.bind(item, o);
       context.bind(itemizeItem(item, i), o);
@@ -172,7 +219,9 @@ public class ForEachSqlNode implements SqlNode {
 
   }
 
-
+  /**
+   * 为什么不和FilteredDynamicContext一样，做个静态类？
+   */
   private class PrefixedContext extends DynamicContext {
     private final DynamicContext delegate;
     private final String prefix;
@@ -201,6 +250,9 @@ public class ForEachSqlNode implements SqlNode {
 
     @Override
     public void appendSql(String sql) {
+      /**
+       * sql不为空就会添加prefix
+       */
       if (!prefixApplied && sql != null && sql.trim().length() > 0) {
         delegate.appendSql(prefix);
         prefixApplied = true;

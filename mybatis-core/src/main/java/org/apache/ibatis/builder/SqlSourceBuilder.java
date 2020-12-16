@@ -86,6 +86,9 @@ public class SqlSourceBuilder extends BaseBuilder {
     public ParameterMappingTokenHandler(Configuration configuration, Class<?> parameterType, Map<String, Object> additionalParameters) {
       super(configuration);
       this.parameterType = parameterType;
+      /**
+       * additionalParameters主要是用来推断属性的java类型
+       */
       this.metaParameters = configuration.newMetaObject(additionalParameters);
     }
 
