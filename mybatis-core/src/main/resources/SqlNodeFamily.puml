@@ -91,7 +91,7 @@ class StaticTextSqlNode implements SqlNode
 
 StaticTextSqlNode : String text
 note top of StaticTextSqlNode
-  sql片段（静态文本）
+  静态sql片段
 end note
 
 class TextSqlNode implements SqlNode
@@ -99,7 +99,7 @@ class TextSqlNode implements SqlNode
 TextSqlNode : String text
 TextSqlNode : Pattern injectionFilter
 note top of TextSqlNode
-  sql片段（动态文本，即包含“${”和“}”）
+  动态sql片段（包含“${}”）
 end note
 
 @enduml

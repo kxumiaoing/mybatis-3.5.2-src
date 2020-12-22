@@ -73,20 +73,33 @@ public class MapperBuilderAssistant extends BaseBuilder {
     if (base == null) {
       return null;
     }
+
     if (isReference) {
+      /**
+       * 支持引用其他namespace的id
+       */
       // is it qualified with any namespace yet?
       if (base.contains(".")) {
         return base;
       }
     } else {
+      /**
+       * 已经包含了namespace，直接返回
+       */
       // is it qualified with this namespace yet?
       if (base.startsWith(currentNamespace + ".")) {
         return base;
       }
+      /**
+       * 不支持引用的id如果包含点号就报错
+       */
       if (base.contains(".")) {
         throw new BuilderException("Dots are not allowed in element names, please remove it from " + base);
       }
     }
+    /**
+     * 加上namespace
+     */
     return currentNamespace + "." + base;
   }
 
@@ -251,6 +264,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return new Discriminator.Builder(configuration, resultMapping, namespaceDiscriminatorMap).build();
   }
 
+  /**
+   *  根据sql语句（SqlSource）常见对应的MapperedStatement
+   */
   public MappedStatement addMappedStatement(
       String id,
       SqlSource sqlSource,
@@ -277,6 +293,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
       throw new IncompleteElementException("Cache-ref not yet resolved");
     }
 
+    /**
+     * id加上namespace
+     */
     id = applyCurrentNamespace(id, false);
     boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
 
@@ -304,6 +323,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
     }
 
     MappedStatement statement = statementBuilder.build();
+    /**
+     * 缓存到Configuration对象中
+     */
     configuration.addMappedStatement(statement);
     return statement;
   }

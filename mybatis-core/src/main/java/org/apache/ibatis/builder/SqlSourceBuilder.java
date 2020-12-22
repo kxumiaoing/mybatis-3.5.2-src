@@ -30,8 +30,12 @@ import org.apache.ibatis.type.JdbcType;
 
 /**
  * @author Clinton Begin
+ *
+ * 构建StaticSqlSource
+ *
  * 将sql语句中的参数（参数使用“#{”和“}”包裹）抠出来，包装成ParameterMapping，
- * 并且将参数使用“?”替换，将sql变成jdbc规范的sql
+ * 并且将参数使用“?”替换，生成防止漏洞注入的sql语句
+ * 重点：属性的java类型需要根据入参类型和实际入参来推断
  */
 public class SqlSourceBuilder extends BaseBuilder {
 
@@ -44,7 +48,7 @@ public class SqlSourceBuilder extends BaseBuilder {
   /**
    * @param originalSql 需要进行参数注入的sql脚本（包含“#{”和“}”）
    * @param parameterType 参数类型
-   * @param additionalParameters 实际参数或者实际类型的包装
+   * @param additionalParameters 实际参数+附加参数，用来推断参数的类型
    */
   public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, Object> additionalParameters) {
     ParameterMappingTokenHandler handler = new ParameterMappingTokenHandler(configuration, parameterType, additionalParameters);

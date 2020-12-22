@@ -34,9 +34,10 @@ import org.apache.ibatis.session.Configuration;
  * @author Clinton Begin
  *
  * sql信息对象：
- * 1、sql语句（包含“?”）
+ * 1、防止漏洞注入的sql语句
  * 2、sql语句中的参数信息描述
- * 3、sql语句中的参数值
+ * 3、实际参数
+ * 4、附加参数（绑定参数）
  */
 public class BoundSql {
   //sql语句（包含“?”）
@@ -54,6 +55,9 @@ public class BoundSql {
     this.sql = sql;
     this.parameterMappings = parameterMappings;
     this.parameterObject = parameterObject;
+    /**
+     * 附加参数使用Map容器保存
+     */
     this.additionalParameters = new HashMap<>();
     this.metaParameters = configuration.newMetaObject(additionalParameters);
   }
@@ -70,6 +74,9 @@ public class BoundSql {
     return parameterObject;
   }
 
+  /**
+   * 以下方法都是操作附加参数
+   */
   public boolean hasAdditionalParameter(String name) {
     String paramName = new PropertyTokenizer(name).getName();
     return additionalParameters.containsKey(paramName);

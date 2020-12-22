@@ -44,6 +44,9 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 /**
  * @author Clinton Begin
  * @author Kazuki Shimizu
+ *
+ * 使用数据库生成key
+ *
  */
 public class Jdbc3KeyGenerator implements KeyGenerator {
 
@@ -67,6 +70,11 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
     processBatch(ms, stmt, parameter);
   }
 
+  /**
+   *
+   * 未读 todo
+   *
+   */
   public void processBatch(MappedStatement ms, Statement stmt, Object parameter) {
     final String[] keyProperties = ms.getKeyProperties();
     if (keyProperties == null || keyProperties.length == 0) {

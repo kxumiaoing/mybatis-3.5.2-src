@@ -15,10 +15,10 @@
  */
 package org.apache.ibatis.scripting.xmltags;
 
-import java.util.Map;
-
 import org.apache.ibatis.parsing.GenericTokenParser;
 import org.apache.ibatis.session.Configuration;
+
+import java.util.Map;
 
 /**
  * @author Clinton Begin
@@ -127,7 +127,7 @@ public class ForEachSqlNode implements SqlNode {
     applyClose(context);
     /**
      * 将index和item从Context中移除，上文的绑定其实都是绑到底层Context上了
-     * 但是没有删除那些特殊的index和item，这些特殊的index和item仅仅是为了做个记录？
+     * 但是没有删除那些特殊的index和item
      */
     context.getBindings().remove(item);
     context.getBindings().remove(index);
@@ -138,6 +138,8 @@ public class ForEachSqlNode implements SqlNode {
     if (index != null) {
       /**
        * 将index绑定到DynamicContext中
+       * DynamicContext子类使用了装饰模式，但是数据绑定都会绑到底层的ContextMap上，for-each中最终会剥离装饰类的外层，但是
+       * 绑定的参数并不会丢失
        */
       context.bind(index, o);
       context.bind(itemizeItem(index, i), o);
@@ -147,6 +149,8 @@ public class ForEachSqlNode implements SqlNode {
   private void applyItem(DynamicContext context, Object o, int i) {
     /**
      * 将item绑定到DynamicContext中
+     * DynamicContext子类使用了装饰模式，但是数据绑定都会绑到底层的ContextMap上，for-each中最终会剥离装饰类的外层，但是
+     * 绑定的参数并不会丢失
      */
     if (item != null) {
       context.bind(item, o);
@@ -201,7 +205,14 @@ public class ForEachSqlNode implements SqlNode {
 
     @Override
     public void appendSql(String sql) {
+      /**
+       * 此处使用内置的item名字（每次迭代都不同）和内置的index名字（每次迭代都不同）替换foreach迭代过程中的临时变量
+       * 是为了将foreach平铺开，最终解析变量值时可以笼统解析
+       */
       GenericTokenParser parser = new GenericTokenParser("#{", "}", content -> {
+        /**
+         * (?![^.,:\\s])等价于(?=[.,:\\s])，表示后面紧跟着“.”或“,”或“:”或空格的变量名才会被替换
+         */
         String newContent = content.replaceFirst("^\\s*" + item + "(?![^.,:\\s])", itemizeItem(item, index));
         if (itemIndex != null && newContent.equals(content)) {
           newContent = content.replaceFirst("^\\s*" + itemIndex + "(?![^.,:\\s])", itemizeItem(itemIndex, index));
@@ -219,9 +230,6 @@ public class ForEachSqlNode implements SqlNode {
 
   }
 
-  /**
-   * 为什么不和FilteredDynamicContext一样，做个静态类？
-   */
   private class PrefixedContext extends DynamicContext {
     private final DynamicContext delegate;
     private final String prefix;

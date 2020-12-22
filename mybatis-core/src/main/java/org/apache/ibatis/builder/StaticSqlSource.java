@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * @author Clinton Begin
  *
- * 静态的sql脚本解析结果容器
+ * 防漏洞注入的sql语句+参数信息（ParameterMapping）
  */
 public class StaticSqlSource implements SqlSource {
 

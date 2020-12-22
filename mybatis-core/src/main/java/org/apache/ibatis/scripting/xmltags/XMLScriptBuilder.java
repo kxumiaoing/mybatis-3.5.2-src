@@ -34,7 +34,7 @@ import java.util.Map;
  */
 
 /**
- * 解析sql脚本
+ * 解析sql脚本，构建SqlSource对象（DynamicSqlSource和RawSqlSource）
  */
 public class XMLScriptBuilder extends BaseBuilder {
 
@@ -137,7 +137,7 @@ public class XMLScriptBuilder extends BaseBuilder {
         }
       } else if (child.getNode().getNodeType() == Node.ELEMENT_NODE) { // issue #628
         /**
-         * 处理节点动态节点
+         * 处理子节点
          */
         /**
          * 根据节点的名字找到对应的处理器处理

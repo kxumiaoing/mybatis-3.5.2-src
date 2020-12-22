@@ -29,6 +29,9 @@ import org.apache.ibatis.session.RowBounds;
 /**
  * @author Clinton Begin
  * @author Jeff Butler
+ *
+ * 通过select语句生成key
+ *
  */
 public class SelectKeyGenerator implements KeyGenerator {
 
@@ -55,6 +58,9 @@ public class SelectKeyGenerator implements KeyGenerator {
     }
   }
 
+  /**
+   * 生成key的逻辑，后面再看 todo
+   */
   private void processGeneratedKeys(Executor executor, MappedStatement ms, Object parameter) {
     try {
       if (parameter != null && keyStatement != null && keyStatement.getKeyProperties() != null) {

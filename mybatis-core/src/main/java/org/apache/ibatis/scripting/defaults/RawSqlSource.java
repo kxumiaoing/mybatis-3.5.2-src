@@ -32,10 +32,8 @@ import java.util.HashMap;
  * @since 3.2.0
  * @author Eduardo Macarron
  *
- * 静态sql脚本容器
- * 尽管不包含“${”和“}”，但是可能包含“#{”和“}”
- * 代理StaticSqlSource
- * 已经将“#{”和“}”解析成了ParameterMapping
+ * 静态sql脚本（不包含“${”和“}”）容器
+ * 代理StaticSqlSource，StaticSqlSource在构造器中创建，因此是静态的
  */
 public class RawSqlSource implements SqlSource {
 
@@ -62,7 +60,7 @@ public class RawSqlSource implements SqlSource {
      */
     Class<?> clazz = parameterType == null ? Object.class : parameterType;
     /**
-     * 构建StaticSqlSource：将sql语句中的参数替换成“?”，并且解析成ParameterMapping
+     * 构建（静态生成）StaticSqlSource：将sql语句中的参数替换成“?”，并且解析成ParameterMapping
      */
     sqlSource = sqlSourceParser.parse(sql, clazz, new HashMap<>());
   }

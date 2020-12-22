@@ -399,9 +399,15 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private void sqlElement(List<XNode> list, String requiredDatabaseId) {
     for (XNode context : list) {
+      //databaseId
       String databaseId = context.getStringAttribute("databaseId");
+      //id
       String id = context.getStringAttribute("id");
+      //添加上namespace的id
       id = builderAssistant.applyCurrentNamespace(id, false);
+      /**
+       * 将XNode节点缓存到sqlFragment中（Configuration对象中）
+       */
       if (databaseIdMatchesCurrent(id, databaseId, requiredDatabaseId)) {
         sqlFragments.put(id, context);
       }

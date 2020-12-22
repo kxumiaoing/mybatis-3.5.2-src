@@ -48,6 +48,9 @@ public class DynamicContext {
    * 内部使用StringBuilder拼接字符串
    */
   private final StringJoiner sqlBuilder = new StringJoiner(" ");
+  /**
+   * foreach循环迭代时用于生成不同的变量名
+   */
   private int uniqueNumber = 0;
 
   /**
@@ -56,7 +59,9 @@ public class DynamicContext {
    */
   public DynamicContext(Configuration configuration, Object parameterObject) {
     /**
-     * 如果如果参数是Map，没必要通过MetaObject来访问它的“属性”（key）
+     * ContextMap的作用：
+     * 1、保存附加参数（动态上下文的原因所在）
+     * 2、保存实际入参（非Map类型）的MetaObject
      */
     if (parameterObject != null && !(parameterObject instanceof Map)) {
       MetaObject metaObject = configuration.newMetaObject(parameterObject);
@@ -68,6 +73,9 @@ public class DynamicContext {
     } else {
       bindings = new ContextMap(null, false);
     }
+    /**
+     * 3、保存实际入参
+     */
     bindings.put(PARAMETER_OBJECT_KEY, parameterObject);
     bindings.put(DATABASE_ID_KEY, configuration.getDatabaseId());
   }
@@ -112,7 +120,7 @@ public class DynamicContext {
     public Object get(Object key) {
       String strKey = (String) key;
       /**
-       * 这里已经有的值是绑定到上下文中的值
+       * 绑定到上下文中的值（附加参数）
        */
       if (super.containsKey(strKey)) {
         return super.get(strKey);
@@ -147,6 +155,9 @@ public class DynamicContext {
      * 3、对参对象本身（此处入参对象是一Map）
      */
     public Object getProperty(Map context, Object target, Object name) {
+      /**
+       * 非Map类型的入参，通过MetaObject或者附加参数来获取参数
+       */
       Map map = (Map) target;
 
       Object result = map.get(name);
@@ -155,8 +166,7 @@ public class DynamicContext {
       }
 
       /**
-       * 在实际入参对象（它为null或者是一个Map）上获取属性值
-       * 与DynamicContext的构造方法遥相呼应（互补），战线拉得有点长
+       * Map类型的入参，从map中获取参数
        */
       Object parameterObject = map.get(PARAMETER_OBJECT_KEY);
       if (parameterObject instanceof Map) {

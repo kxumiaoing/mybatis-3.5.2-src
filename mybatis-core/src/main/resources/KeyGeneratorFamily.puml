@@ -1,0 +1,28 @@
+@startuml
+
+class SelectKeyGenerator implements KeyGenerator
+
+note top of KeyGenerator
+    key值生成器
+end note
+
+SelectKeyGenerator : boolean executeBefore
+SelectKeyGenerator : MapperedStatement keyStatement
+
+note top of SelectKeyGenerator
+    通过select sql语句生成key
+end note
+
+class NoKeyGenerator implements KeyGenerator
+
+note top of NoKeyGenerator
+    key值哑生成器
+end note
+
+class Jdbc3KeyGenerator implements KeyGenerator
+
+note top of Jdbc3KeyGenerator
+    使用数据库自增key
+end note
+
+@enduml

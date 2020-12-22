@@ -22,6 +22,9 @@ import java.sql.Statement;
 
 /**
  * @author Clinton Begin
+ *
+ * key生成器，主要是将生成的key设置到插入后的对象中
+ *
  */
 public interface KeyGenerator {
 

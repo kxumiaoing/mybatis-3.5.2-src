@@ -47,9 +47,15 @@ public class XMLIncludeTransformer {
   }
 
   public void applyIncludes(Node source) {
+    //属性容器
     Properties variablesContext = new Properties();
+    //configuration收集到的属性
     Properties configurationVariables = configuration.getVariables();
+    //将configuration收集到的属性放入属性容器
     Optional.ofNullable(configurationVariables).ifPresent(variablesContext::putAll);
+    /**
+     * 开始解析<include>标签
+     */
     applyIncludes(source, variablesContext, false);
   }
 
@@ -57,6 +63,9 @@ public class XMLIncludeTransformer {
    * Recursively apply includes through all SQL fragments.
    * @param source Include node in DOM tree
    * @param variablesContext Current context for static variables with values
+   *
+   * 使用变量值替换后的sql（文本节点，添加）替换include标签节点（删除）
+   *
    */
   private void applyIncludes(Node source, final Properties variablesContext, boolean included) {
     if (source.getNodeName().equals("include")) {
@@ -69,7 +78,7 @@ public class XMLIncludeTransformer {
        */
       Properties toIncludeContext = getVariablesContext(source, variablesContext);
       /**
-       * 对<sql>节点进行属性替换
+       * 递归解析<include>子节点
        */
       applyIncludes(toInclude, toIncludeContext, true);
 
@@ -87,6 +96,7 @@ public class XMLIncludeTransformer {
        * 将子节点（其实是文本节点）提出来，查到父节点前面（同一层）
        */
       while (toInclude.hasChildNodes()) {
+        //insertBefore后是有顺序的
         toInclude.getParentNode().insertBefore(toInclude.getFirstChild(), toInclude);
       }
       /**
@@ -95,6 +105,9 @@ public class XMLIncludeTransformer {
        */
       toInclude.getParentNode().removeChild(toInclude);
     } else if (source.getNodeType() == Node.ELEMENT_NODE) {
+      /**
+       * 对节点中的属性进行变量值替换
+       */
       if (included && !variablesContext.isEmpty()) {
         // replace variables in attribute values
         NamedNodeMap attributes = source.getAttributes();
@@ -104,7 +117,7 @@ public class XMLIncludeTransformer {
         }
       }
       /**
-       * 查找子节点，包括include节点
+       * 查找子节点，递归解析<include>子节点
        */
       NodeList children = source.getChildNodes();
       for (int i = 0; i < children.getLength(); i++) {
@@ -114,14 +127,19 @@ public class XMLIncludeTransformer {
         && !variablesContext.isEmpty()) {
       // replace variables in text node
       /**
-       * 对文本节点进行属性替换，比如说<sql>对应的节点
+       * 对文本节点进行变量值替换，比如sql中的alias
        */
       source.setNodeValue(PropertyParser.parse(source.getNodeValue(), variablesContext));
     }
   }
 
+  /**
+   * 从configuration缓存（sqlFragments）中查找相同id的<sql>标签节点，并且需要复制一份（不能修改原始内容）
+   */
   private Node findSqlFragment(String refid, Properties variables) {
-    //refid也可能包含属性，需要进行属性替换
+    /**
+     * refid也可能包含属性，需要进行属性替换
+     */
     refid = PropertyParser.parse(refid, variables);
     //加上namespace信息
     refid = builderAssistant.applyCurrentNamespace(refid, true);
@@ -157,12 +175,15 @@ public class XMLIncludeTransformer {
     for (int i = 0; i < children.getLength(); i++) {
       Node n = children.item(i);
       if (n.getNodeType() == Node.ELEMENT_NODE) {
+          //name属性
         String name = getStringAttribute(n, "name");
         // Replace variables inside
+        //value属性，并且进行了变量值替换
         String value = PropertyParser.parse(getStringAttribute(n, "value"), inheritedVariablesContext);
         if (declaredProperties == null) {
           declaredProperties = new HashMap<>();
         }
+        //不能重复定义相同name的<property>标签
         if (declaredProperties.put(name, value) != null) {
           throw new BuilderException("Variable " + name + " defined twice in the same include definition");
         }
@@ -172,7 +193,7 @@ public class XMLIncludeTransformer {
       return inheritedVariablesContext;
     } else {
       /**
-       * 加上配置文件中设置的属性
+       * 加上Configuration收集到的所有属性（定义位置越近，优先级越高）
        */
       Properties newProperties = new Properties();
       newProperties.putAll(inheritedVariablesContext);

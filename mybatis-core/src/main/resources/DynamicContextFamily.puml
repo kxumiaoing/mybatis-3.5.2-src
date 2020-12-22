@@ -18,4 +18,11 @@ note top of ForEachSqlNode.PrefixedContext
     处理foreach分隔符前缀
 end note
 
+class ForEachSqlNode.FilteredDynamicContext extends DynamicContext
+
+note top of ForEachSqlNode.FilteredDynamicContext
+    平铺foreach循环
+    每次循环中的临时变量使用内在定义的变量名（各不相同，因此可以平铺）来引用，并且用来替换sql中的变量名（相同的）
+end note
+
 @enduml
