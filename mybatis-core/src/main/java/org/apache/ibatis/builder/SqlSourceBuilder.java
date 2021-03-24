@@ -31,11 +31,8 @@ import org.apache.ibatis.type.JdbcType;
 /**
  * @author Clinton Begin
  *
- * 构建StaticSqlSource
+ * 解析sql语句中的参数信息，构建StaticSqlSource
  *
- * 将sql语句中的参数（参数使用“#{”和“}”包裹）抠出来，包装成ParameterMapping，
- * 并且将参数使用“?”替换，生成防止漏洞注入的sql语句
- * 重点：属性的java类型需要根据入参类型和实际入参来推断
  */
 public class SqlSourceBuilder extends BaseBuilder {
 
@@ -46,53 +43,46 @@ public class SqlSourceBuilder extends BaseBuilder {
   }
 
   /**
-   * @param originalSql 需要进行参数注入的sql脚本（包含“#{”和“}”）
-   * @param parameterType 参数类型
-   * @param additionalParameters 实际参数+附加参数，用来推断参数的类型
+   * @param originalSql 包含#{}参数的sql语句
+   * @param parameterType 运行时外部传递参数的类型
+   * @param additionalParameters 运行时外部传递的参数
    */
   public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, Object> additionalParameters) {
     ParameterMappingTokenHandler handler = new ParameterMappingTokenHandler(configuration, parameterType, additionalParameters);
-    /**
-     * sql语句中参数变量是用使用“#{”和“}”包裹的，最终需要进行参数注入（变量替换）
-     */
     GenericTokenParser parser = new GenericTokenParser("#{", "}", handler);
 
     /**
-     * sql语句进行参数注入（参数替换成了？）
+     * 将参数替换成？的sql语句
      */
     String sql = parser.parse(originalSql);
-    /**
-     * 使用sql（满足jdbc规范，包含“?”的），参数信息列表构造SqlSource
-     */
     return new StaticSqlSource(configuration, sql, handler.getParameterMappings());
   }
 
   /**
-   * 宿主类对sql语句进行参数注入的时候，辅助对参数求值
+   * 解析出sql中的参数信息
    */
   private static class ParameterMappingTokenHandler extends BaseBuilder implements TokenHandler {
-
+    /**
+     * 参数描述信息
+     */
     private List<ParameterMapping> parameterMappings = new ArrayList<>();
     /**
-     * 参数来源的对象类型
+     * 运行时外部传递参数的类型
      */
     private Class<?> parameterType;
+    /**
+     * 运行时外部传递参数对应的MetaObject
+     */
     private MetaObject metaParameters;
 
     /**
-     * @param configuration configuration对象
-     * @param parameterType 入参类型
-     * @param additionalParameters 实际参数或者实际参数的包装
-     *
-     * 根据入参类型和实际参数来推断属性的类型
-     *
+     * @param configuration
+     * @param parameterType 运行时外部传递参数的类型
+     * @param additionalParameters 运行时外部传递的参数
      */
     public ParameterMappingTokenHandler(Configuration configuration, Class<?> parameterType, Map<String, Object> additionalParameters) {
       super(configuration);
       this.parameterType = parameterType;
-      /**
-       * additionalParameters主要是用来推断属性的java类型
-       */
       this.metaParameters = configuration.newMetaObject(additionalParameters);
     }
 
@@ -117,29 +107,38 @@ public class SqlSourceBuilder extends BaseBuilder {
 
     private ParameterMapping buildParameterMapping(String content) {
       /**
-       * 参数表达式解析结果（Map）
+       * 参数信息解析结果（Map）
        */
       Map<String, String> propertiesMap = parseParameterMapping(content);
-      //属性名
       String property = propertiesMap.get("property");
       /**
-       *
+       * 推断属性的类型
        */
       Class<?> propertyType;
       if (metaParameters.hasGetter(property)) { // issue #448 get type from additional params
-        //根据提供参数的对象的getter方法确定属性的类型
+        /**
+         * getter的返回值类型
+         */
         propertyType = metaParameters.getGetterType(property);
       } else if (typeHandlerRegistry.hasTypeHandler(parameterType)) {
-        //有对应的TypeHandler说明入参不是一个“复杂”的对象，而是事实上的属性，参数类型就是属性类型
+        /**
+         * 运行时传递的参数是基本类型（有对应的类型处理器），那么激进地认为它就是参数类型
+         */
         propertyType = parameterType;
       } else if (JdbcType.CURSOR.name().equals(propertiesMap.get("jdbcType"))) {
-          //jdbcType指定的类型如果是游标，那么属性类型就是ResultSet
+        /**
+         * jdbcType指定的类型如果是游标，那么属性类型就是ResultSet
+         */
         propertyType = java.sql.ResultSet.class;
       } else if (property == null || Map.class.isAssignableFrom(parameterType)) {
-          //不知道属性的类型
+        /**
+         * 不知道属性的类型
+         */
         propertyType = Object.class;
       } else {
-          //根据参数类型，通过getter来确定属性的类型
+        /**
+         * 根据参数类型，通过getter来确定属性的类型
+         */
         MetaClass metaClass = MetaClass.forClass(parameterType, configuration.getReflectorFactory());
         if (metaClass.hasGetter(property)) {
           propertyType = metaClass.getGetterType(property);

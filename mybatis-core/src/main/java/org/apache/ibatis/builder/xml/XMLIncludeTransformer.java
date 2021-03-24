@@ -47,11 +47,11 @@ public class XMLIncludeTransformer {
   }
 
   public void applyIncludes(Node source) {
-    //属性容器
+    /**
+     * 用来替换变量的属性
+     */
     Properties variablesContext = new Properties();
-    //configuration收集到的属性
     Properties configurationVariables = configuration.getVariables();
-    //将configuration收集到的属性放入属性容器
     Optional.ofNullable(configurationVariables).ifPresent(variablesContext::putAll);
     /**
      * 开始解析<include>标签
@@ -63,27 +63,34 @@ public class XMLIncludeTransformer {
    * Recursively apply includes through all SQL fragments.
    * @param source Include node in DOM tree
    * @param variablesContext Current context for static variables with values
+   * @param included source是否属于include的内容
    *
-   * 使用变量值替换后的sql（文本节点，添加）替换include标签节点（删除）
+   * 使用<include>标签指向的<sql>标签内容替换<include>标签，并且对所有标签中的变量进行值替换
    *
    */
   private void applyIncludes(Node source, final Properties variablesContext, boolean included) {
+    /**
+     * <include>节点
+     */
     if (source.getNodeName().equals("include")) {
       /**
-       * 从configuration中查找sqlFragment，即<sql>对应的节点（克隆的一份）
+       * 从configuration中查找sqlFragment，即<sql>对应的节点，并且克隆的一份
         */
       Node toInclude = findSqlFragment(getStringAttribute(source, "refid"), variablesContext);
       /**
-       * 获取属性，用于属性替换
+       * 解析<property>标签，合并属性
        */
       Properties toIncludeContext = getVariablesContext(source, variablesContext);
       /**
-       * 递归解析<include>子节点
+       * 对<sql>节点进行如下操作：
+       *    1、对<sql>节点中所有属性节点进行属性替换
+       *    2、对<sql>节点中所有文本节点进行属性替换
+       *    3、继续挖掘<sql>节点中的<include>节点
        */
       applyIncludes(toInclude, toIncludeContext, true);
 
       /**
-       * 引用的<sql>节点不在当前文档中，将<sql>节点插入到当前文档
+       * 更新<sql>节点的拥有者文档
        */
       if (toInclude.getOwnerDocument() != source.getOwnerDocument()) {
         toInclude = source.getOwnerDocument().importNode(toInclude, true);
@@ -93,19 +100,18 @@ public class XMLIncludeTransformer {
        */
       source.getParentNode().replaceChild(toInclude, source);
       /**
-       * 将子节点（其实是文本节点）提出来，查到父节点前面（同一层）
+       * 将<sql>节点的所有子节点都插入到<sql>节点的前面
        */
       while (toInclude.hasChildNodes()) {
-        //insertBefore后是有顺序的
         toInclude.getParentNode().insertBefore(toInclude.getFirstChild(), toInclude);
       }
       /**
-       * 上一步将文本节点已经提出来了，完成了<sql>节点的解析了，直接删除<sql>节点，
-       * 其实使用文本节点替换原来的<sql>节点
+       * 删除<sql>节点
        */
       toInclude.getParentNode().removeChild(toInclude);
     } else if (source.getNodeType() == Node.ELEMENT_NODE) {
       /**
+       * 只有当是<sql>节点时，included才为true
        * 对节点中的属性进行变量值替换
        */
       if (included && !variablesContext.isEmpty()) {
@@ -127,6 +133,7 @@ public class XMLIncludeTransformer {
         && !variablesContext.isEmpty()) {
       // replace variables in text node
       /**
+       * 只有当是<sql>节点时，included才为true
        * 对文本节点进行变量值替换，比如sql中的alias
        */
       source.setNodeValue(PropertyParser.parse(source.getNodeValue(), variablesContext));
@@ -141,7 +148,6 @@ public class XMLIncludeTransformer {
      * refid也可能包含属性，需要进行属性替换
      */
     refid = PropertyParser.parse(refid, variables);
-    //加上namespace信息
     refid = builderAssistant.applyCurrentNamespace(refid, true);
     try {
       //查找
@@ -156,7 +162,9 @@ public class XMLIncludeTransformer {
   }
 
   private String getStringAttribute(Node node, String name) {
-    //Node类型节点查找属性
+    /**
+     * Node类型节点查找属性
+     */
     return node.getAttributes().getNamedItem(name).getNodeValue();
   }
 
@@ -175,20 +183,26 @@ public class XMLIncludeTransformer {
     for (int i = 0; i < children.getLength(); i++) {
       Node n = children.item(i);
       if (n.getNodeType() == Node.ELEMENT_NODE) {
-          //name属性
+        /**
+         * 获取属性值
+         */
         String name = getStringAttribute(n, "name");
         // Replace variables inside
-        //value属性，并且进行了变量值替换
         String value = PropertyParser.parse(getStringAttribute(n, "value"), inheritedVariablesContext);
         if (declaredProperties == null) {
           declaredProperties = new HashMap<>();
         }
-        //不能重复定义相同name的<property>标签
+        /**
+         * 不能重复定义属性
+         */
         if (declaredProperties.put(name, value) != null) {
           throw new BuilderException("Variable " + name + " defined twice in the same include definition");
         }
       }
     }
+    /**
+     * 合并属性
+     */
     if (declaredProperties == null) {
       return inheritedVariablesContext;
     } else {

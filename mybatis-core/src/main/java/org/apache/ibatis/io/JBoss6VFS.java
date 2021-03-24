@@ -32,7 +32,7 @@ import java.util.List;
  */
 
 /**
- * jboss版的VFS，即使用反射代理jboss实现的VFS
+ * jboss版的VFS，即使用反射代理jboss实现的VFS（代理模式）
  */
 public class JBoss6VFS extends VFS {
   private static final Log log = LogFactory.getLog(JBoss6VFS.class);

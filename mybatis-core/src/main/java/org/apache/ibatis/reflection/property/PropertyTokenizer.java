@@ -20,15 +20,26 @@ import java.util.Iterator;
 /**
  * @author Clinton Begin
  * 级联属性名字对象（多级属性名，属性名支持索引）
+ *
+ * .表示属性引用索引
+ * []表示数组/集合索引
  */
 public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
-  //一级属性名字（纯名字）
+  /**
+   * 属性的名字
+   */
   private String name;
-  //一级属性名字（可能包含索引，使用“[”和“]”包裹索引值）
+  /**
+   * name[index]
+   */
   private final String indexedName;
-  //一级属性名字中的索引
+  /**
+   * 数组索引（数字）
+   */
   private String index;
-  //除去一级属性名字后的级联属性名字
+  /**
+   * 除去一级属性名的剩余部分
+   */
   private final String children;
 
   public PropertyTokenizer(String fullname) {

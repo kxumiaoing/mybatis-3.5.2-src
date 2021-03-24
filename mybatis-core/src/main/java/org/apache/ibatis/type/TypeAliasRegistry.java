@@ -15,22 +15,13 @@
  */
 package org.apache.ibatis.type;
 
+import org.apache.ibatis.io.ResolverUtil;
+import org.apache.ibatis.io.Resources;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.ibatis.io.ResolverUtil;
-import org.apache.ibatis.io.Resources;
+import java.util.*;
 
 /**
  * @author Clinton Begin
@@ -120,6 +111,7 @@ public class TypeAliasRegistry {
         return null;
       }
       // issue #748
+      //按照小写来取得
       String key = string.toLowerCase(Locale.ENGLISH);
       Class<T> value;
       /**
@@ -136,6 +128,11 @@ public class TypeAliasRegistry {
     }
   }
 
+  /**
+   * ################################################
+   * 扫描包下所有类型，并且注册类型别名
+   * ################################################
+   */
   /**
    * 根据包名，注册包下面所有类型的别名（SimpleName）
    */
@@ -161,7 +158,12 @@ public class TypeAliasRegistry {
   }
 
   /**
-   * 根据类型登记，别名是SimpleName或者Alias指定的值
+   * ###################################################
+   * 根据别名和类型名称来注册类型别名
+   * ###################################################
+   */
+  /**
+   * 根据类型登记，别名是SimpleName或者Alias注解指定的值
    */
   public void registerAlias(Class<?> type) {
     String alias = type.getSimpleName();
@@ -180,6 +182,7 @@ public class TypeAliasRegistry {
       throw new TypeException("The parameter alias cannot be null");
     }
     // issue #748
+    //统一转化成小写
     String key = alias.toLowerCase(Locale.ENGLISH);
     //重复的登记报错
     if (typeAliases.containsKey(key) && typeAliases.get(key) != null && !typeAliases.get(key).equals(value)) {

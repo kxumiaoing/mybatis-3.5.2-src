@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.qbd.mapper.StudentMappers">
+<mapper namespace="com.qbd.mapper.StudentMapper">
     <cache-ref namespace="com.someone.application.data.SomeMapper"/>
     <sql id="countryColumns">
         ${alias}.id,

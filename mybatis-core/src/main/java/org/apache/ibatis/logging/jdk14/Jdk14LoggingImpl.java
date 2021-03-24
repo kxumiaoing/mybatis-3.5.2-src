@@ -15,13 +15,16 @@
  */
 package org.apache.ibatis.logging.jdk14;
 
+import org.apache.ibatis.logging.Log;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.ibatis.logging.Log;
-
 /**
  * @author Clinton Begin
+ *
+ * 委托给java.util.logging的Logger对象
+ *
  */
 public class Jdk14LoggingImpl implements Log {
 

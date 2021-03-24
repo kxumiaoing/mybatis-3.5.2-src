@@ -15,15 +15,6 @@
  */
 package org.apache.ibatis.mapping;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.builder.BuilderException;
 import org.apache.ibatis.logging.Log;
@@ -31,23 +22,59 @@ import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.reflection.ParamNameUtil;
 import org.apache.ibatis.session.Configuration;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.util.*;
+
 /**
  * @author Clinton Begin
  */
 public class ResultMap {
   private Configuration configuration;
-
+  /**
+   * id属性
+   */
   private String id;
+  /**
+   * 对应的实例类型
+   */
   private Class<?> type;
+  /**
+   * 所有的ResultMapping
+   */
   private List<ResultMapping> resultMappings;
+  /**
+   * id标签对应的ResultMapping
+   */
   private List<ResultMapping> idResultMappings;
+  /**
+   * constructor标签对应的ResultMapping
+   */
   private List<ResultMapping> constructorResultMappings;
+  /**
+   * result标签对应的ResultMapping
+   */
   private List<ResultMapping> propertyResultMappings;
+  /**
+   * 所有列名称
+   */
   private Set<String> mappedColumns;
+  /**
+   * 所有属性名称
+   */
   private Set<String> mappedProperties;
   private Discriminator discriminator;
+  /**
+   * 是否有内嵌的ResultMap
+   */
   private boolean hasNestedResultMaps;
+  /**
+   * 是否有内嵌的select
+   */
   private boolean hasNestedQueries;
+  /**
+   * 自动映射
+   */
   private Boolean autoMapping;
 
   private ResultMap() {
@@ -92,6 +119,9 @@ public class ResultMap {
       for (ResultMapping resultMapping : resultMap.resultMappings) {
         resultMap.hasNestedQueries = resultMap.hasNestedQueries || resultMapping.getNestedQueryId() != null;
         resultMap.hasNestedResultMaps = resultMap.hasNestedResultMaps || (resultMapping.getNestedResultMapId() != null && resultMapping.getResultSet() == null);
+        /**
+         * 所有列名称
+         */
         final String column = resultMapping.getColumn();
         if (column != null) {
           resultMap.mappedColumns.add(column.toUpperCase(Locale.ENGLISH));
@@ -103,6 +133,9 @@ public class ResultMap {
             }
           }
         }
+        /**
+         * 所有属性名称
+         */
         final String property = resultMapping.getProperty();
         if (property != null) {
           resultMap.mappedProperties.add(property);
@@ -160,6 +193,9 @@ public class ResultMap {
       return null;
     }
 
+    /**
+     * 检测构造器参数类型是否匹配
+     */
     private boolean argTypesMatch(final List<String> constructorArgNames,
         Class<?>[] paramTypes, List<String> paramNames) {
       for (int i = 0; i < constructorArgNames.size(); i++) {
@@ -179,6 +215,9 @@ public class ResultMap {
       return true;
     }
 
+    /**
+     * 获取构造器参数的名字
+     */
     private List<String> getArgNames(Constructor<?> constructor) {
       List<String> paramNames = new ArrayList<>();
       List<String> actualParamNames = null;
@@ -186,12 +225,18 @@ public class ResultMap {
       int paramCount = paramAnnotations.length;
       for (int paramIndex = 0; paramIndex < paramCount; paramIndex++) {
         String name = null;
+        /**
+         * 通过Param注解获取参数的名字
+         */
         for (Annotation annotation : paramAnnotations[paramIndex]) {
           if (annotation instanceof Param) {
             name = ((Param) annotation).value();
             break;
           }
         }
+        /**
+         * 获取类定义中参数的名字
+         */
         if (name == null && resultMap.configuration.isUseActualParamName()) {
           if (actualParamNames == null) {
             actualParamNames = ParamNameUtil.getParamNames(constructor);
@@ -200,6 +245,9 @@ public class ResultMap {
             name = actualParamNames.get(paramIndex);
           }
         }
+        /**
+         * 默认是argX
+         */
         paramNames.add(name != null ? name : "arg" + paramIndex);
       }
       return paramNames;

@@ -49,6 +49,9 @@ public class LoggingCache implements Cache {
     delegate.putObject(key, object);
   }
 
+  /**
+   * 统计缓存命中率
+   */
   @Override
   public Object getObject(Object key) {
     requests++;

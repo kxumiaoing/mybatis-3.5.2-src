@@ -1,0 +1,31 @@
+@startuml
+
+note top of BaseJdbcLogger
+    在进行jdbc操作时，通过动态代理打印格式友好的日志
+end note
+
+class ConnectionLogger extends BaseJdbcLogger
+
+note top of ConnectionLogger
+    Connection操作的InvocationHandler
+end note
+
+class PreparedStatementLogger extends BaseJdbcLogger
+
+note top of PreparedStatementLogger
+    PreparedStatement操作的InvocationHandler
+end note
+
+class StatementLogger extends BaseJdbcLogger
+
+note top of StatementLogger
+    Statement操作的InvocationHandler
+end note
+
+class ResultSetLogger extends BaseJdbcLogger
+
+note top of ResultSetLogger
+    ResultSet操作的InvocationHandler
+end note
+
+@enduml

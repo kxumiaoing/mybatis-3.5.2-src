@@ -32,8 +32,8 @@ import java.util.HashMap;
  * @since 3.2.0
  * @author Eduardo Macarron
  *
- * 静态sql脚本（不包含“${”和“}”）容器
- * 代理StaticSqlSource，StaticSqlSource在构造器中创建，因此是静态的
+ * 在编译时解析完的sql语句
+ *
  */
 public class RawSqlSource implements SqlSource {
 
@@ -44,44 +44,34 @@ public class RawSqlSource implements SqlSource {
   private final SqlSource sqlSource;
 
   public RawSqlSource(Configuration configuration, SqlNode rootSqlNode, Class<?> parameterType) {
-    /**
-     * getSql将sql脚本片段（SqlNode）拼接成完整的sql语句
-     */
     this(configuration, getSql(configuration, rootSqlNode), parameterType);
   }
 
   /**
-   * sql就是sql语句，语句中包含“#{”和“}”，需要进行变量替换
+   * @param sql 包含#{}参数的sql语句（需要将参数解析出来）
+   * @param parameterType 运行时外部传递参数的类型
    */
   public RawSqlSource(Configuration configuration, String sql, Class<?> parameterType) {
     SqlSourceBuilder sqlSourceParser = new SqlSourceBuilder(configuration);
-    /**
-     * parameterType是参数类型，通过parameterType对象对sql语句进行动态注入参数
-     */
     Class<?> clazz = parameterType == null ? Object.class : parameterType;
     /**
-     * 构建（静态生成）StaticSqlSource：将sql语句中的参数替换成“?”，并且解析成ParameterMapping
+     * 编译时解析sql语句中的参数信息
      */
     sqlSource = sqlSourceParser.parse(sql, clazz, new HashMap<>());
   }
 
-  /**
-   * 将sql脚本片段（SqlNode）拼接成完整的sql脚本
-   * 这个方法在构造方法中调用，正好印证了这个对象里面包含的是静态sql，
-   * 即源sql语句中不包含“${”和“}”，是不会随着参数变化而变化的
-   */
   private static String getSql(Configuration configuration, SqlNode rootSqlNode) {
     DynamicContext context = new DynamicContext(configuration, null);
     /**
-     * rootSqlNode是MixedSqlNode，MixedSqlNode是SqlNode的集合
-     * MixedSqlNode的apply方法会迭代依次调用子SqlNode（StaticTextNode）的apply方法
-     * StaticTextNode的apply方法会将sql脚本片段添加到DynamicContext中
-     * DynamicContext中使用StringJoiner将sql脚本片段拼接到一起
+     * DynamicContext在此只是简单地将多个sql片段拼接成完整的sql语句（语句中带有#{}参数的）
      */
     rootSqlNode.apply(context);
     return context.getSql();
   }
 
+  /**
+   * @param parameterObject 运行时外部传递的参数
+   */
   @Override
   public BoundSql getBoundSql(Object parameterObject) {
     return sqlSource.getBoundSql(parameterObject);

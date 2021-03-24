@@ -24,16 +24,15 @@ import java.util.Properties;
  * @author Clinton Begin
  *
  * 对象工厂
- *  1、使用无参构造器创建对象
- *  2、根据有参构造器创建对象
- *  3、设置对象的属性
- *  4、判断对象是否是集合
  */
 public interface ObjectFactory {
 
   /**
    * Sets configuration properties.
    * @param properties configuration properties
+   *
+   * ObjectFactory自己的属性
+   *
    */
   default void setProperties(Properties properties) {
     // NOP
@@ -42,7 +41,9 @@ public interface ObjectFactory {
   /**
    * Creates a new object with default constructor.
    * @param type Object type
-   * @return
+   *
+   * 通过类型创建对应的实例
+   *
    */
   <T> T create(Class<T> type);
 
@@ -51,7 +52,9 @@ public interface ObjectFactory {
    * @param type Object type
    * @param constructorArgTypes Constructor argument types
    * @param constructorArgs Constructor argument values
-   * @return
+   *
+   * 通过类型、构造方法参数类型以及构造方法参数创建实例
+   *
    */
   <T> T create(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs);
 
@@ -62,6 +65,9 @@ public interface ObjectFactory {
    * @param type Object type
    * @return whether it is a collection or not
    * @since 3.1.0
+   *
+   * 通过类型判断是否是集合
+   *
    */
   <T> boolean isCollection(Class<T> type);
 

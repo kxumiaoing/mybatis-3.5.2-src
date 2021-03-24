@@ -37,9 +37,14 @@ import java.util.Map;
  * 解析sql脚本，构建SqlSource对象（DynamicSqlSource和RawSqlSource）
  */
 public class XMLScriptBuilder extends BaseBuilder {
-
+  /**
+   * 包含sql语句的节点
+   */
   private final XNode context;
   private boolean isDynamic;
+  /**
+   * 参数类型（参数的属性值用来设置sql语句中的参数）
+   */
   private final Class<?> parameterType;
   private final Map<String, NodeHandler> nodeHandlerMap = new HashMap<>();
 
@@ -78,18 +83,18 @@ public class XMLScriptBuilder extends BaseBuilder {
 
   public SqlSource parseScriptNode() {
     /**
-     * sql脚本（所有sql脚本片段）
+     * sql脚本（sql脚本片段集合）
      */
     MixedSqlNode rootSqlNode = parseDynamicTags(context);
     SqlSource sqlSource;
     if (isDynamic) {
       /**
-       * 动态sql脚本
+       * 动态sql语句
        */
       sqlSource = new DynamicSqlSource(configuration, rootSqlNode);
     } else {
       /**
-       * 静态sql脚本
+       * 静态sql语句
        */
       sqlSource = new RawSqlSource(configuration, rootSqlNode, parameterType);
     }
@@ -109,7 +114,7 @@ public class XMLScriptBuilder extends BaseBuilder {
     for (int i = 0; i < children.getLength(); i++) {
       XNode child = node.newXNode(children.item(i));
       /**
-       * 处理文本动态节点
+       * 文本节点
        */
       if (child.getNode().getNodeType() == Node.CDATA_SECTION_NODE || child.getNode().getNodeType() == Node.TEXT_NODE) {
         /**
@@ -122,25 +127,20 @@ public class XMLScriptBuilder extends BaseBuilder {
         TextSqlNode textSqlNode = new TextSqlNode(data);
 
         /**
-         * 如果sql脚本片段中有个“${”和“}”的，那么这个片段就是动态sql脚本片段
-         * 最终生成的是DynamicSqlSource
+         * 如果是动态脚本片段直接使用TextSqlNode，如果不是就是创建新的StaticTextSqlNode（静态sql脚本片段）
          */
         if (textSqlNode.isDynamic()) {
           contents.add(textSqlNode);
           isDynamic = true;
         } else {
-          /**
-           * 纯文本sql脚本片段
-           * 如果所有的SqlNode都是StaticTextSqlNode，那么最终生成的就是RawSqlSource
-           */
           contents.add(new StaticTextSqlNode(data));
         }
       } else if (child.getNode().getNodeType() == Node.ELEMENT_NODE) { // issue #628
         /**
-         * 处理子节点
+         * 处理<if>、<choose>、<trim>、<foreach>子节点
          */
         /**
-         * 根据节点的名字找到对应的处理器处理
+         * 根据节点的名字找到对应的节点处理器处理
          */
         String nodeName = child.getNode().getNodeName();
         NodeHandler handler = nodeHandlerMap.get(nodeName);
@@ -165,6 +165,10 @@ public class XMLScriptBuilder extends BaseBuilder {
   }
 
   private interface NodeHandler {
+    /**
+     * @param nodeToHandle 需要处理的节点
+     * @param targetContents SqlNode容器
+     */
     void handleNode(XNode nodeToHandle, List<SqlNode> targetContents);
   }
 
@@ -175,9 +179,13 @@ public class XMLScriptBuilder extends BaseBuilder {
 
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
-      //变量名
+      /**
+       * 变量名
+       */
       final String name = nodeToHandle.getStringAttribute("name");
-      //变量值表达式
+      /**
+       * 变量值表达式
+       */
       final String expression = nodeToHandle.getStringAttribute("value");
       final VarDeclSqlNode node = new VarDeclSqlNode(name, expression);
       targetContents.add(node);
@@ -192,16 +200,24 @@ public class XMLScriptBuilder extends BaseBuilder {
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
       /**
-       * 这个更加简单，就是把多个if串起来，组成混合SqlNode
+       * trim标签包含的多个sql脚本片段
        */
       MixedSqlNode mixedSqlNode = parseDynamicTags(nodeToHandle);
-      //前缀
+      /**
+       * 前缀
+       */
       String prefix = nodeToHandle.getStringAttribute("prefix");
-      //前缀抹除
+      /**
+       * 前缀抹除
+       */
       String prefixOverrides = nodeToHandle.getStringAttribute("prefixOverrides");
-      //后缀
+      /**
+       * 后缀
+       */
       String suffix = nodeToHandle.getStringAttribute("suffix");
-      //后缀摸出
+      /**
+       * 后缀摸出
+       */
       String suffixOverrides = nodeToHandle.getStringAttribute("suffixOverrides");
       TrimSqlNode trim = new TrimSqlNode(configuration, mixedSqlNode, prefix, prefixOverrides, suffix, suffixOverrides);
       targetContents.add(trim);
@@ -248,17 +264,29 @@ public class XMLScriptBuilder extends BaseBuilder {
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
       MixedSqlNode mixedSqlNode = parseDynamicTags(nodeToHandle);
-      //集合expression表达式，需要使用ognl引擎解析对象
+      /**
+       * 集合expression表达式，需要使用ognl引擎解析对象
+       */
       String collection = nodeToHandle.getStringAttribute("collection");
-      //集合里面元素的引用名
+      /**
+       * 集合里面元素的引用名
+       */
       String item = nodeToHandle.getStringAttribute("item");
-      //集合迭代索引的引用名
+      /**
+       * 集合迭代索引的引用名
+       */
       String index = nodeToHandle.getStringAttribute("index");
-      //前缀
+      /**
+       * 前缀
+       */
       String open = nodeToHandle.getStringAttribute("open");
-      //后缀
+      /**
+       * 后缀
+       */
       String close = nodeToHandle.getStringAttribute("close");
-      //集合元素生成脚本后的分割符
+      /**
+       * 集合元素生成脚本后的分割符
+       */
       String separator = nodeToHandle.getStringAttribute("separator");
       ForEachSqlNode forEachSqlNode = new ForEachSqlNode(configuration, mixedSqlNode, collection, index, item, open, close, separator);
       targetContents.add(forEachSqlNode);
@@ -273,7 +301,7 @@ public class XMLScriptBuilder extends BaseBuilder {
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
       /**
-       * 宿主类帮助解析
+       * 解析标签孩子对应的sql片段
        */
       MixedSqlNode mixedSqlNode = parseDynamicTags(nodeToHandle);
       String test = nodeToHandle.getStringAttribute("test");
@@ -310,7 +338,13 @@ public class XMLScriptBuilder extends BaseBuilder {
 
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
+      /**
+       * 所有when节点对应的sql片段
+       */
       List<SqlNode> whenSqlNodes = new ArrayList<>();
+      /**
+       * otherwise节点对应的sql片段
+       */
       List<SqlNode> otherwiseSqlNodes = new ArrayList<>();
       /**
        * 处理when，otherwise节点
@@ -349,6 +383,9 @@ public class XMLScriptBuilder extends BaseBuilder {
       if (defaultSqlNodes.size() == 1) {
         defaultSqlNode = defaultSqlNodes.get(0);
       } else if (defaultSqlNodes.size() > 1) {
+        /**
+         * 只会有一个otherwise节点
+         */
         throw new BuilderException("Too many default (otherwise) elements in choose statement.");
       }
       return defaultSqlNode;

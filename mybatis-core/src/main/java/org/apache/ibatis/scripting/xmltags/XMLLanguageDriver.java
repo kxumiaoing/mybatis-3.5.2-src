@@ -42,6 +42,12 @@ public class XMLLanguageDriver implements LanguageDriver {
     return new DefaultParameterHandler(mappedStatement, parameterObject, boundSql);
   }
 
+    /**
+     * @param configuration
+     * @param script 完整的sql语句对应的节点
+     * @param parameterType 参数类型
+     * @return
+     */
   @Override
   public SqlSource createSqlSource(Configuration configuration, XNode script, Class<?> parameterType) {
     /**
@@ -51,14 +57,23 @@ public class XMLLanguageDriver implements LanguageDriver {
     return builder.parseScriptNode();
   }
 
+  /**
+   * sql是字符串
+   */
   @Override
   public SqlSource createSqlSource(Configuration configuration, String script, Class<?> parameterType) {
     // issue #3
+    /**
+     * xml格式的脚本
+     */
     if (script.startsWith("<script>")) {
       XPathParser parser = new XPathParser(script, false, configuration.getVariables(), new XMLMapperEntityResolver());
       return createSqlSource(configuration, parser.evalNode("/script"), parameterType);
-    } else {
+    } else {//没有xml标签的脚本
       // issue #127
+      /**
+       * 类似XMLIncludeTransformer中变量值替换功能
+       */
       script = PropertyParser.parse(script, configuration.getVariables());
       TextSqlNode textSqlNode = new TextSqlNode(script);
       if (textSqlNode.isDynamic()) {

@@ -25,6 +25,7 @@ import java.util.Properties;
 
 /**
  * @author Clinton Begin
+ * 适配器模式？
  */
 public class XNode {
 
@@ -50,6 +51,9 @@ public class XNode {
     this.body = parseBody(node);
   }
 
+  /**
+   * XNode包装一个Node
+   */
   public XNode newXNode(Node node) {
     return new XNode(xpathParser, node, variables);
   }
@@ -147,8 +151,12 @@ public class XNode {
 
 
   /**
-   *
-   * 获取String、Boolean、int、Long、Double、Float类型的body
+   * ################################################
+   * 获取body的值
+   * ################################################
+   */
+  /**
+   * String
    */
   public String getStringBody() {
     return getStringBody(null);
@@ -162,6 +170,9 @@ public class XNode {
     }
   }
 
+  /**
+   * Boolean
+   */
   public Boolean getBooleanBody() {
     return getBooleanBody(null);
   }
@@ -174,6 +185,9 @@ public class XNode {
     }
   }
 
+  /**
+   * Int
+   */
   public Integer getIntBody() {
     return getIntBody(null);
   }
@@ -186,6 +200,9 @@ public class XNode {
     }
   }
 
+  /**
+   * Long
+   */
   public Long getLongBody() {
     return getLongBody(null);
   }
@@ -198,6 +215,9 @@ public class XNode {
     }
   }
 
+  /**
+   * Double
+   */
   public Double getDoubleBody() {
     return getDoubleBody(null);
   }
@@ -210,6 +230,9 @@ public class XNode {
     }
   }
 
+  /**
+   * Float
+   */
   public Float getFloatBody() {
     return getFloatBody(null);
   }
@@ -224,7 +247,12 @@ public class XNode {
 
 
   /**
-   * 获取Enum、String、Boolean、int、Long、Double、Float类型的Attribute
+   * ############################################################
+   * 获取属性的值
+   * ############################################################
+   */
+  /**
+   * enum
    */
   public <T extends Enum<T>> T getEnumAttribute(Class<T> enumType, String name) {
     return getEnumAttribute(enumType, name, null);
@@ -239,6 +267,9 @@ public class XNode {
     }
   }
 
+  /**
+   * String
+   */
   public String getStringAttribute(String name) {
     return getStringAttribute(name, null);
   }
@@ -252,6 +283,9 @@ public class XNode {
     }
   }
 
+  /**
+   * Boolean
+   */
   public Boolean getBooleanAttribute(String name) {
     return getBooleanAttribute(name, null);
   }
@@ -265,6 +299,9 @@ public class XNode {
     }
   }
 
+  /**
+   * Int
+   */
   public Integer getIntAttribute(String name) {
     return getIntAttribute(name, null);
   }
@@ -278,6 +315,9 @@ public class XNode {
     }
   }
 
+  /**
+   * Long
+   */
   public Long getLongAttribute(String name) {
     return getLongAttribute(name, null);
   }
@@ -291,6 +331,9 @@ public class XNode {
     }
   }
 
+  /**
+   * Double
+   */
   public Double getDoubleAttribute(String name) {
     return getDoubleAttribute(name, null);
   }
@@ -304,6 +347,9 @@ public class XNode {
     }
   }
 
+  /**
+   * Float
+   */
   public Float getFloatAttribute(String name) {
     return getFloatAttribute(name, null);
   }
@@ -405,7 +451,7 @@ public class XNode {
   }
 
   /**
-   * 解析body的数据，当前节点不是文本节点，就取第一个节点的body
+   * 解析body的数据，当前节点不是文本节点，就取第一个子节点的body
    */
   private String parseBody(Node node) {
     String data = getBodyData(node);

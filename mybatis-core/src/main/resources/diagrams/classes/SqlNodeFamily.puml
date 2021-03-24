@@ -1,0 +1,110 @@
+@startuml
+
+class MixedSqlNode implements SqlNode
+
+MixedSqlNode : <b>List<SqlNode></b> <i>contents</i>
+
+note top of MixedSqlNode
+  sql片段的集合
+end note
+
+''''''''''''''''''''''''''''''''''''''''''
+class TrimSqlNode implements SqlNode
+note top of SqlNode
+  sql片段
+end note
+
+TrimSqlNode : <b>Configuration</b> <i>configuration</i>
+TrimSqlNode : <b>SqlNode</b> <i> contents</i>
+TrimSqlNode : <b>String</b> <i> prefix</i>
+TrimSqlNode : <b>String</b> <i> suffix</i>
+TrimSqlNode : <b>List<String></b> <i> prefixesToOverride</i>
+TrimSqlNode : <b>List<String></b> <i> suffixesToOverride</i>
+note top of TrimSqlNode
+  <trim>标签对应的sql片段
+end note
+
+''''''''''''''''''''''''''''''''''''''''''
+class SetSqlNode extends TrimSqlNode
+
+SetSqlNode : (*) <b>String</b> <i>prefix</i> = "SET"
+
+note bottom of SetSqlNode
+  <set>标签对应的sql片段
+end note
+
+''''''''''''''''''''''''''''''''''''''''''
+class WhereSqlNode extends TrimSqlNode
+
+WhereSqlNode : (*) <b>String</b> <i>prefix</i> = "WHERE"
+
+note bottom of WhereSqlNode
+  <where>标签对应的sql片段
+end note
+
+''''''''''''''''''''''''''''''''''''''''''
+class ForEachSqlNode implements SqlNode
+
+ForEachSqlNode : <b>String</b> <i>collectionExpression</i>
+ForEachSqlNode : <b>SqlNode</b> <i> contents</i>
+ForEachSqlNode : <b>String</b> <i> open</i>
+ForEachSqlNode : <b>String</b> <i> close</i>
+ForEachSqlNode : <b>String</b> <i> separator</i>
+ForEachSqlNode : <b>String</b> <i> item</i>
+ForEachSqlNode : <b>String</b> <i> index</i>
+ForEachSqlNode : <b>Configuration</b> <i> configuration</i>
+
+note bottom of ForEachSqlNode
+  <foreach>标签对应的sql片段
+end note
+
+'''''''''''''''''''''''''''''''''''''''''''
+class IfSqlNode implements SqlNode
+
+IfSqlNode : <b>String</b> <i>test</i>
+IfSqlNode : <b>SqlNode</b> <i>contents</i>
+
+note top of IfSqlNode
+  <if>标签对应的sql片段
+end note
+
+'''''''''''''''''''''''''''''''''''''''''''
+class ChooseSqlNode implements SqlNode
+
+ChooseSqlNode : <b>List<SqlNode></b> <i>ifSqlNodes</i>
+ChooseSqlNode : <b>SqlNode</b> <i>defaultSqlNode</i>
+
+note top of ChooseSqlNode
+  <choose>标签对应的sql片段
+end note
+
+'''''''''''''''''''''''''''''''''''''''''''
+class VarDeclSqlNode implements SqlNode
+
+VarDeclSqlNode : <b>String</b> <i>name</i>
+VarDeclSqlNode : <b>String</b> <i>expression</i>
+
+note bottom of VarDeclSqlNode
+  <bind>标签（没有sql片段，只是将运行时变量绑定到上下文当中）
+end note
+
+'''''''''''''''''''''''''''''''''''''''''''
+class TextSqlNode implements SqlNode
+
+TextSqlNode : <b>String</b> <i>text</i>
+TextSqlNode : <b>Pattern</b> <i>injectionFilter</i>
+
+note top of TextSqlNode
+  包含“${}”动态sql片段
+end note
+
+'''''''''''''''''''''''''''''''''''''''''''
+class StaticTextSqlNode implements SqlNode
+
+StaticTextSqlNode : <b>String</b> <i>text</i>
+
+note top of StaticTextSqlNode
+  静态sql片段
+end note
+
+@enduml

@@ -24,12 +24,15 @@ import java.util.List;
 
 /**
  * @author Clinton Begin
- *
- * 防漏洞注入的sql语句+参数信息（ParameterMapping）
  */
 public class StaticSqlSource implements SqlSource {
-
+  /**
+   * 最终sql（参数都使用？代替）
+   */
   private final String sql;
+  /**
+   * 所有参数描述
+   */
   private final List<ParameterMapping> parameterMappings;
   private final Configuration configuration;
 
@@ -37,11 +40,6 @@ public class StaticSqlSource implements SqlSource {
     this(configuration, sql, null);
   }
 
-  /**
-   * @param configuration Configuration对象
-   * @param sql 包含“?”的sql语句
-   * @param parameterMappings sql语句中的参数信息
-   */
   public StaticSqlSource(Configuration configuration, String sql, List<ParameterMapping> parameterMappings) {
     this.sql = sql;
     this.parameterMappings = parameterMappings;
@@ -50,9 +48,6 @@ public class StaticSqlSource implements SqlSource {
 
   @Override
   public BoundSql getBoundSql(Object parameterObject) {
-    /**
-     * 包含sql语句、参数信息描述以及参数值的对象
-     */
     return new BoundSql(configuration, sql, parameterMappings, parameterObject);
   }
 

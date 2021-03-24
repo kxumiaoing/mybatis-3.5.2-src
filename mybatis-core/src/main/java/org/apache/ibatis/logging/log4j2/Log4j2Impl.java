@@ -22,6 +22,11 @@ import org.apache.logging.log4j.spi.AbstractLogger;
 
 /**
  * @author Eduardo Macarron
+ *
+ * 代理模式
+ *
+ * 两种被代理对象，对应log4j的两种不同的Logger
+ *
  */
 public class Log4j2Impl implements Log {
 

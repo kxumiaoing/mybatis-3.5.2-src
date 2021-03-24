@@ -42,23 +42,29 @@ public class ParameterExpression extends HashMap<String, String> {
   }
 
   private void parse(String expression) {
-    //跳过不显示字符
+    /**
+     * 跳过不显示字符
+     */
     int p = skipWS(expression, 0);
     if (expression.charAt(p) == '(') {
       /**
-       * #{}里面是表达式
+       * 参数的值是一个表达式的值
+       *
+       * 表达式必须使用()包裹起来
+       *
        */
       expression(expression, p + 1);
     } else {
       /**
-       * 属性
+       * 参数的值是对象属性的值
        */
       property(expression, p);
     }
   }
 
   /**
-   * 与property方法类型，区别在于property中属性名位置上放着表达式（以为“(”和“)”包裹起来）
+   * @param expression 表达式字符串
+   * @param left 开始解析的位置
    */
   private void expression(String expression, int left) {
     int match = 1;
@@ -122,12 +128,11 @@ public class ParameterExpression extends HashMap<String, String> {
   }
 
   private void jdbcTypeOpt(String expression, int p) {
-      //跳过不显示字符
     p = skipWS(expression, p);
     if (p < expression.length()) {
       if (expression.charAt(p) == ':') {
         /**
-         * 属性名和明确的jdbcType之间使用“:”分割
+         * 重点：属性名和明确的jdbcType之间使用“:”分割
          */
         jdbcType(expression, p + 1);
       } else if (expression.charAt(p) == ',') {
@@ -184,11 +189,15 @@ public class ParameterExpression extends HashMap<String, String> {
   }
 
   private String trimmedStr(String str, int start, int end) {
-    //跳过不显示的字符
+    /**
+     * 开头跳过不显示的字符
+     */
     while (str.charAt(start) <= 0x20) {
       start++;
     }
-    //跳过不显示的字符
+    /**
+     * 结尾跳过不显示的字符
+     */
     while (str.charAt(end - 1) <= 0x20) {
       end--;
     }

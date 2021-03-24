@@ -22,8 +22,7 @@ import org.apache.ibatis.session.Configuration;
 
 /**
  * @author Clinton Begin
- * 动态sql语句（包含“${”和“}”包裹的变量）容器
- * 最终的sql需要根据运行时传递的参数，解析根SqlNode来确定（运行时生成StaticSqlNode）
+ * 在运行时解析完的sql语句
  */
 public class DynamicSqlSource implements SqlSource {
 
@@ -38,37 +37,22 @@ public class DynamicSqlSource implements SqlSource {
   @Override
   public BoundSql getBoundSql(Object parameterObject) {
     /**
-     * 动态sql的原因所在：sql是根据parameterObject动态变化的
+     * 将运行时传递的参数绑定到上下文中，用来确定最终的sql
      */
     DynamicContext context = new DynamicContext(configuration, parameterObject);
     /**
-     * SqlNode依次执行apply方法，解析sql片段中的动态部分（“${”和“}”包裹的内容），生成静态sql，并且添加到DynamicContex中
+     * 拼接完整的sql语句
      */
     rootSqlNode.apply(context);
     /**
-     * 分割线以上部分是拼接sql语句
-     * ==========================================================
-     * 分割线以下部分是构建SqlSource
+     * 解析sql语句中参数信息
      */
     SqlSourceBuilder sqlSourceParser = new SqlSourceBuilder(configuration);
-    /**
-     * parameterType根据实际参数来动态获取类型
-     */
     Class<?> parameterType = parameterObject == null ? Object.class : parameterObject.getClass();
-    /**
-     * 构建（动态生成）StaticSqlSource：将sql语句中的参数替换成“?”，并且解析成ParameterMapping
-     */
     SqlSource sqlSource = sqlSourceParser.parse(context.getSql(), parameterType, context.getBindings());
-    /**
-     * =================================================
-     * 分割线一下创建BoundSql
-     */
-    /**
-     * 构建（动态生成）BoundSql
-     */
     BoundSql boundSql = sqlSource.getBoundSql(parameterObject);
     /**
-     * 将附加参数放入BoundSql中
+     * 重点：将运行时产生的参数放入BoundSql中
      */
     context.getBindings().forEach(boundSql::setAdditionalParameter);
     return boundSql;

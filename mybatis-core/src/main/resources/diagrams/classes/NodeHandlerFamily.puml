@@ -1,17 +1,18 @@
 @startuml
 
+NodeHandler : handleNode(XNode,List<SqlNode>)
 class BindHandler implements NodeHandler
 note top of BindHandler
   处理<bind>标签
 end note
 
 class TrimHandler implements NodeHandler
-note top of TrimHandler
+note bottom of TrimHandler
   处理<trim>标签
 end note
 
 class WhereHandler implements NodeHandler
-note top of WhereHandler
+note bottom of WhereHandler
   处理<where>标签
 end note
 
@@ -21,7 +22,7 @@ note top of SetHandler
 end note
 
 class ForEachHandler implements NodeHandler
-note top of ForEachHandler
+note bottom of ForEachHandler
   处理<foreach>标签
 end note
 
@@ -31,7 +32,7 @@ note top of IfHandler
 end note
 
 class OtherwiseHandler implements NodeHandler
-note top of OtherwiseHandler
+note bottom of OtherwiseHandler
   处理<otherwise>标签
 end note
 

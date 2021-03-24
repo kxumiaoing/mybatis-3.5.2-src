@@ -32,7 +32,8 @@ public class MethodInvoker implements Invoker {
     this.method = method;
 
     /**
-     * 要么是参数类型（只有一个参数的方法），要么是返回类型
+     * 此处的方法只可能是setter或者getter，因此type要么是参数类型，要么是返回值类型
+     * 并且是经过泛型擦除的
      */
     if (method.getParameterTypes().length == 1) {
       type = method.getParameterTypes()[0];

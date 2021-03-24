@@ -1,0 +1,12 @@
+@startuml
+
+XMLIncludeTransformer -> XMLIncludeTransformer1: applyIncludes()
+XMLIncludeTransformer1 -> XMLIncludeTransformer2: 1、findSqlFragment()：找到include节点指定的sql节点
+XMLIncludeTransformer1 -> XMLIncludeTransformer2: 2、getVariablesContext()：解析include节点下的所有property节点
+XMLIncludeTransformer1 -> XMLIncludeTransformer2: 3、applyIncludes()：替换sql节点中的变量（属性节点或文本节点）或递归applyIncludes()工作流
+XMLIncludeTransformer1 -> XMLIncludeTransformer2: 4、使用sql节点替换include节点
+XMLIncludeTransformer1 -> XMLIncludeTransformer2: 5、将sql节点中所有子节点都插入到sql节点前面
+XMLIncludeTransformer1 -> XMLIncludeTransformer2: 6、删除sql节点
+XMLIncludeTransformer1 -> XMLIncludeTransformer: done
+
+@enduml

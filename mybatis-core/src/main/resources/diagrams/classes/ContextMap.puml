@@ -1,0 +1,7 @@
+@startuml
+
+class ContextMap extends HashMap
+
+ContextMap : MetaObject parameterMetaObject
+
+@enduml

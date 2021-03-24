@@ -1,0 +1,42 @@
+@startuml
+
+note top of DataSource
+    数据连接源
+end note
+
+class UnpooledDataSource implements DataSource
+
+note top of UnpooledDataSource
+    非池数据连接源
+end note
+
+class PooledDataSource implements DataSource
+PooledDataSource o-- UnpooledDataSource
+
+note top of PooledDataSource
+    池数据连接源
+end note
+
+note top of DataSourceFactory
+    数据连接源工厂
+end note
+
+class UnpooledDataSourceFactory implements DataSourceFactory
+
+note top of UnpooledDataSourceFactory
+    非池数据连接源池工厂
+end note
+
+class PooledDataSourceFactory implements UnpooledDataSourceFactory
+
+note top of PooledDataSourceFactory
+    池数据连接源池工厂
+end note
+
+class JndiDataSourceFactory implements DataSourceFactory
+
+note top of JndiDataSourceFactory
+    jndi数据连接源池工厂
+end note
+
+@enduml

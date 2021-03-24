@@ -33,31 +33,35 @@ import org.apache.ibatis.session.Configuration;
  *
  * @author Clinton Begin
  *
- * sql信息对象：
- * 1、防止漏洞注入的sql语句
- * 2、sql语句中的参数信息描述
- * 3、实际参数
- * 4、附加参数（绑定参数）
+ * sql语句执行的完备条件
+ *
  */
 public class BoundSql {
-  //sql语句（包含“?”）
+  /**
+   * sql语句
+   */
   private final String sql;
-  //sql语句中的参数描述
+  /**
+   * sql语句中的参数描述
+   */
   private final List<ParameterMapping> parameterMappings;
-  //提供参数的对象
+  /**
+   * 提供参数的对象
+   */
   private final Object parameterObject;
-  //提供附件参数的对象
+  /**
+   * 运行时产生的临时参数对象（比如foreach产生的循环变量）
+   */
   private final Map<String, Object> additionalParameters;
-  //提供附件参数对象的元对象（提供访问的）
+  /**
+   * 运行时产生的临时参数对象对应的MetaObject
+   */
   private final MetaObject metaParameters;
 
   public BoundSql(Configuration configuration, String sql, List<ParameterMapping> parameterMappings, Object parameterObject) {
     this.sql = sql;
     this.parameterMappings = parameterMappings;
     this.parameterObject = parameterObject;
-    /**
-     * 附加参数使用Map容器保存
-     */
     this.additionalParameters = new HashMap<>();
     this.metaParameters = configuration.newMetaObject(additionalParameters);
   }

@@ -25,6 +25,9 @@ import java.util.List;
 /**
  * @author Clinton Begin
  * bean的包裹器委托给对象的元数据类型对象
+ *
+ * 设置/获取属性的值只支持到第一层（MetaObject依赖ObjectWrapper支持多层），但是获取setter/getter参数类型确支持多层
+ *
  */
 public class BeanWrapper extends BaseWrapper {
 
@@ -37,6 +40,12 @@ public class BeanWrapper extends BaseWrapper {
     this.metaClass = MetaClass.forClass(object.getClass(), metaObject.getReflectorFactory());
   }
 
+  /**
+   * 依赖MetaObject的getValue方法
+   *
+   * “[]”是集合类型的“属性”索引
+   *
+   */
   @Override
   public Object get(PropertyTokenizer prop) {
     if (prop.getIndex() != null) {

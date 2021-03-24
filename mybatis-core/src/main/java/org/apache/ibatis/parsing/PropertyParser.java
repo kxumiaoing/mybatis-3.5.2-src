@@ -78,15 +78,24 @@ public class PropertyParser {
       return (variables == null) ? defaultValue : variables.getProperty(key, defaultValue);
     }
 
+    /**
+     * 从外部属性字典中解析变量
+     */
     @Override
     public String handleToken(String content) {
-      //从额外属性中，根据key获取value，并且支持默认值
+      /**
+       * 外部属性字典
+       */
       if (variables != null) {
         String key = content;
 
-        //支持默认值
+        /**
+         * 支持默认值
+         */
         if (enableDefaultValue) {
-          //分隔符的索引
+          /**
+           * 分隔符的索引
+           */
           final int separatorIndex = content.indexOf(defaultValueSeparator);
           String defaultValue = null;
 
@@ -104,7 +113,9 @@ public class PropertyParser {
         }
       }
 
-      //否则使用“${}”包住
+      /**
+       * 如果不能解析（没有提供解析字典），就恢复原状（与特定GenericTokenParser耦合在一起）
+       */
       return "${" + content + "}";
     }
   }

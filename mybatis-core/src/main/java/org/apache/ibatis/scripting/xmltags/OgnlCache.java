@@ -42,7 +42,7 @@ public final class OgnlCache {
   /**
    *
    * @param expression 表达式
-   * @param root 参数对象或者它的包装
+   * @param root 上下文
    */
   public static Object getValue(String expression, Object root) {
     try {
@@ -54,7 +54,7 @@ public final class OgnlCache {
   }
 
   /**
-   * 有缓存，读缓存，没有缓存，开始使用Ognl求值，并且加入缓存
+   * 解析表达式，并且将解析后的结果缓存起来
    */
   private static Object parseExpression(String expression) throws OgnlException {
     Object node = expressionCache.get(expression);

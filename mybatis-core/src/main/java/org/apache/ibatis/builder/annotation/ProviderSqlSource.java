@@ -15,12 +15,6 @@
  */
 package org.apache.ibatis.builder.annotation;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Map;
-
 import org.apache.ibatis.annotations.Lang;
 import org.apache.ibatis.builder.BuilderException;
 import org.apache.ibatis.mapping.BoundSql;
@@ -29,6 +23,12 @@ import org.apache.ibatis.reflection.ParamNameResolver;
 import org.apache.ibatis.scripting.LanguageDriver;
 import org.apache.ibatis.session.Configuration;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Map;
+
 /**
  * @author Clinton Begin
  * @author Kazuki Shimizu
@@ -36,13 +36,37 @@ import org.apache.ibatis.session.Configuration;
 public class ProviderSqlSource implements SqlSource {
 
   private final Configuration configuration;
+  /**
+   * provider类型
+   */
   private final Class<?> providerType;
+  /**
+   * sql语句模板语言驱动
+   */
   private final LanguageDriver languageDriver;
+  /**
+   * mapper方法
+   */
   private final Method mapperMethod;
+  /**
+   * provider方法
+   */
   private Method providerMethod;
+  /**
+   * provider方法的参数名字
+   */
   private String[] providerMethodArgumentNames;
+  /**
+   * provider方法的参数类型
+   */
   private Class<?>[] providerMethodParameterTypes;
+  /**
+   * provider方法的ProviderContext类型参数
+   */
   private ProviderContext providerContext;
+  /**
+   * provider方法中ProviderContext类型参数的索引
+   */
   private Integer providerContextIndex;
 
   /**
@@ -66,6 +90,9 @@ public class ProviderSqlSource implements SqlSource {
       this.providerType = getProviderType(provider, mapperMethod);
       providerMethodName = (String) provider.getClass().getMethod("method").invoke(provider);
 
+      /**
+       * provider方法
+       */
       if (providerMethodName.length() == 0 && ProviderMethodResolver.class.isAssignableFrom(this.providerType)) {
         this.providerMethod = ((ProviderMethodResolver) this.providerType.getDeclaredConstructor().newInstance())
             .resolveMethod(new ProviderContext(mapperType, mapperMethod, configuration.getDatabaseId()));
@@ -92,8 +119,17 @@ public class ProviderSqlSource implements SqlSource {
       throw new BuilderException("Error creating SqlSource for SqlProvider. Method '"
           + providerMethodName + "' not found in SqlProvider '" + this.providerType.getName() + "'.");
     }
+    /**
+     * provider方法的参数名字
+     */
     this.providerMethodArgumentNames = new ParamNameResolver(configuration, this.providerMethod).getNames();
+    /**
+     * provider方法的参数类型
+     */
     this.providerMethodParameterTypes = this.providerMethod.getParameterTypes();
+    /**
+     * provider方法ProviderContext参数
+     */
     for (int i = 0; i < this.providerMethodParameterTypes.length; i++) {
       Class<?> parameterType = this.providerMethodParameterTypes[i];
       if (parameterType == ProviderContext.class) {
@@ -117,6 +153,9 @@ public class ProviderSqlSource implements SqlSource {
   private SqlSource createSqlSource(Object parameterObject) {
     try {
       String sql;
+      /**
+       * 获取sql语句
+       */
       if (parameterObject instanceof Map) {
         int bindParameterCount = providerMethodParameterTypes.length - (providerContext == null ? 0 : 1);
         if (bindParameterCount == 1 &&
@@ -143,6 +182,9 @@ public class ProviderSqlSource implements SqlSource {
           + "' because SqlProvider method arguments for '" + mapperMethod + "' is an invalid combination.");
       }
       Class<?> parameterType = parameterObject == null ? Object.class : parameterObject.getClass();
+      /**
+       * 使用LanguageDriver创建SqlSource
+       */
       return languageDriver.createSqlSource(configuration, sql, parameterType);
     } catch (BuilderException e) {
       throw e;
@@ -160,6 +202,9 @@ public class ProviderSqlSource implements SqlSource {
     return cause;
   }
 
+  /**
+   * 组装provider方法的参数
+   */
   private Object[] extractProviderMethodArguments(Object parameterObject) {
     if (providerContext != null) {
       Object[] args = new Object[2];
@@ -171,6 +216,9 @@ public class ProviderSqlSource implements SqlSource {
     }
   }
 
+  /**
+   * 按照参数的名字组装参数的值
+   */
   private Object[] extractProviderMethodArguments(Map<String, Object> params, String[] argumentNames) {
     Object[] args = new Object[argumentNames.length];
     for (int i = 0; i < args.length; i++) {
@@ -183,6 +231,12 @@ public class ProviderSqlSource implements SqlSource {
     return args;
   }
 
+  /**
+   * 执行provider方法
+   *
+   * 每次执行方法需要实例化一个实例，效率不高，但是没办法，用户定义的类，不保证是线程安全的
+   *
+   */
   private String invokeProviderMethod(Object... args) throws Exception {
     Object targetObject = null;
     if (!Modifier.isStatic(providerMethod.getModifiers())) {
@@ -192,6 +246,9 @@ public class ProviderSqlSource implements SqlSource {
     return sql != null ? sql.toString() : null;
   }
 
+  /**
+   * 从注解上获取provider的类型
+   */
   private Class<?> getProviderType(Object providerAnnotation, Method mapperMethod)
       throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     Class<?> type = (Class<?>) providerAnnotation.getClass().getMethod("type").invoke(providerAnnotation);

@@ -39,6 +39,7 @@ public class ChooseSqlNode implements SqlNode {
         return true;
       }
     }
+
     /**
      * 之前没有满足的，使用缺省的
      */

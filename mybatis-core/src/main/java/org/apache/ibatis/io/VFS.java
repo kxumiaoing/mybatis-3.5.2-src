@@ -54,6 +54,9 @@ public abstract class VFS {
   /** Singleton instance holder. */
   /**
    * 懒加载的单例模式
+   *
+   * 只有懒加载才能设置用户自己实现的VFS
+   *
    */
   private static class VFSHolder {
     static final VFS INSTANCE = createVFS();
@@ -76,6 +79,9 @@ public abstract class VFS {
         Class<? extends VFS> impl = impls.get(i);
         try {
           vfs = impl.newInstance();
+          /**
+           * 如果为空或者无效就打印日志
+           */
           if (vfs == null || !vfs.isValid()) {
             if (log.isDebugEnabled()) {
               log.debug("VFS implementation " + impl.getName() +

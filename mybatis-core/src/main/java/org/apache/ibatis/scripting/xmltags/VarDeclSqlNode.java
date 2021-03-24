@@ -22,8 +22,13 @@ package org.apache.ibatis.scripting.xmltags;
  * 只是用来定义个变量而已，然后在sql脚本片段中使用，变量名也算是sql脚本中的一部分吧
  */
 public class VarDeclSqlNode implements SqlNode {
-
+  /**
+   * 变量名字
+   */
   private final String name;
+  /**
+   * 变量值的表达式
+   */
   private final String expression;
 
   public VarDeclSqlNode(String var, String exp) {
@@ -33,7 +38,7 @@ public class VarDeclSqlNode implements SqlNode {
 
   @Override
   /**
-   * 不同于其他SqlNode，它只是把计算的值插入到上下文中，以便后面的SqlNode使用
+   * 求取表达式对应的值，并且放入上下文
    */
   public boolean apply(DynamicContext context) {
     final Object value = OgnlCache.getValue(expression, context.getBindings());

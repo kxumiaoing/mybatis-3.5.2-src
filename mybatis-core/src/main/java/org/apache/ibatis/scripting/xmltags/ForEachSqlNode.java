@@ -93,6 +93,9 @@ public class ForEachSqlNode implements SqlNode {
         context = new PrefixedContext(context, separator);
       }
       int uniqueNumber = context.getUniqueNumber();
+      /**
+       * 将foreach过程中的摊开，创建独一无二的运行时变量，并且绑定到上下文当中
+       */
       // Issue #709
       if (o instanceof Map.Entry) {
         @SuppressWarnings("unchecked")
@@ -111,6 +114,9 @@ public class ForEachSqlNode implements SqlNode {
         applyIndex(context, i, uniqueNumber);
         applyItem(context, o, uniqueNumber);
       }
+      /**
+       * 将原始的变量名字替换成运行时变量名字
+       */
       contents.apply(new FilteredDynamicContext(configuration, context, index, item, uniqueNumber));
       /**
        * 更新first变量，第一次迭代和后面的迭代在处理分隔符前缀时不一样

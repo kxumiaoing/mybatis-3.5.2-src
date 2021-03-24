@@ -127,9 +127,13 @@ public class Configuration {
 
   protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
   protected final InterceptorChain interceptorChain = new InterceptorChain();
-  //类型处理类登记器
+  /**
+   * 类型处理器登记器
+   */
   protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
-  //类型别名登记器
+  /**
+   * 类型别名登记器
+   */
   protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
 
@@ -645,6 +649,9 @@ public class Configuration {
 
   public void addResultMap(ResultMap rm) {
     resultMaps.put(rm.getId(), rm);
+    /**
+     * 如果discriminator对应的ResultMap内嵌了其他ResultMap，那么当前ResultMap就算内嵌了其他ResultMap
+     */
     checkLocallyForDiscriminatedNestedResultMaps(rm);
     checkGloballyForDiscriminatedNestedResultMaps(rm);
   }
@@ -755,10 +762,16 @@ public class Configuration {
   }
 
   public void addMappers(String packageName) {
+    /**
+     * 解析Annotation类型的Mapper
+     */
     mapperRegistry.addMappers(packageName);
   }
 
   public <T> void addMapper(Class<T> type) {
+    /**
+     * 解析Annotation类型的Mapper
+     */
     mapperRegistry.addMapper(type);
   }
 
@@ -887,6 +900,11 @@ public class Configuration {
     }
   }
 
+  /**
+   * 严格的体现：
+   *      1、不能重复插入
+   *      2、必须检索成功
+   */
   protected static class StrictMap<V> extends HashMap<String, V> {
 
     private static final long serialVersionUID = -4950446264854982944L;
@@ -933,6 +951,9 @@ public class Configuration {
         throw new IllegalArgumentException(name + " already contains value for " + key
             + (conflictMessageProducer == null ? "" : conflictMessageProducer.apply(super.get(key), value)));
       }
+      /**
+       * 使用短一点的key
+       */
       if (key.contains(".")) {
         final String shortKey = getShortName(key);
         if (super.get(shortKey) == null) {

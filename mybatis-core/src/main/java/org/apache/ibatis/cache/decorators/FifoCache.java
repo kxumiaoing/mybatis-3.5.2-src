@@ -15,19 +15,25 @@
  */
 package org.apache.ibatis.cache.decorators;
 
+import org.apache.ibatis.cache.Cache;
+
 import java.util.Deque;
 import java.util.LinkedList;
-
-import org.apache.ibatis.cache.Cache;
 
 /**
  * FIFO (first in, first out) cache decorator.
  *
  * @author Clinton Begin
+ *
+ * 装饰模式：提供FIFO功能
+ *
  */
 public class FifoCache implements Cache {
 
   private final Cache delegate;
+  /**
+   * 缓存key，并且控制key的个数
+   */
   private final Deque<Object> keyList;
   private int size;
 

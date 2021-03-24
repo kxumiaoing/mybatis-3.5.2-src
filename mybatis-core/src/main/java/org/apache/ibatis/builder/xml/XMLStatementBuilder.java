@@ -58,12 +58,18 @@ public class XMLStatementBuilder extends BaseBuilder {
   }
 
   public void parseStatementNode() {
-    //id
+    /**
+     * id
+     */
     String id = context.getStringAttribute("id");
-    //databaseId
+    /**
+     * databaseId
+     */
     String databaseId = context.getStringAttribute("databaseId");
 
-    //检测是否需要解析
+    /**
+     * databaseId对不上不解析
+     */
     if (!databaseIdMatchesCurrent(id, databaseId, this.requiredDatabaseId)) {
       return;
     }
@@ -73,32 +79,36 @@ public class XMLStatementBuilder extends BaseBuilder {
      */
     String nodeName = context.getNode().getNodeName();
     SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
-    //是否是查询sql
+    /**
+     * 是否是select sql
+     */
     boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
-    //是否刷新缓存
+    /**
+     * 是否刷新缓存
+     */
     boolean flushCache = context.getBooleanAttribute("flushCache", !isSelect);
-    //是否使用缓存
+    /**
+     * 是否使用缓存
+     */
     boolean useCache = context.getBooleanAttribute("useCache", isSelect);
-    //结果是否排序
+    /**
+     * 结果是否排序
+     */
     boolean resultOrdered = context.getBooleanAttribute("resultOrdered", false);
 
     // Include Fragments before parsing
     /**
-     * 先解析<include>标签
+     * 重点：使用<include>标签指向的<sql>标签内容替换<include>标签，并且对所有标签中的变量进行值替换
      */
     XMLIncludeTransformer includeParser = new XMLIncludeTransformer(configuration, builderAssistant);
-    /**
-     * 解析<include>节点：使用sql文本节点替换include标签节点
-     */
     includeParser.applyIncludes(context.getNode());
 
-    //参数类型（可能是别名）
     String parameterType = context.getStringAttribute("parameterType");
-    //真实的参数类型
     Class<?> parameterTypeClass = resolveClass(parameterType);
-    //LanguageDriver别名
+    /**
+     * 默认是XMLLanguageDriver
+     */
     String lang = context.getStringAttribute("lang");
-    //默认是XMLLanguageDrvier
     LanguageDriver langDriver = getLanguageDriver(lang);
 
     // Parse selectKey after includes and remove them.
@@ -109,21 +119,18 @@ public class XMLStatementBuilder extends BaseBuilder {
 
     // Parse the SQL (pre: <selectKey> and <include> were parsed and removed)
     KeyGenerator keyGenerator;
-    //key生成器id
     String keyStatementId = id + SelectKeyGenerator.SELECT_KEY_SUFFIX;
-    //加上namespace
     keyStatementId = builderAssistant.applyCurrentNamespace(keyStatementId, true);
-    //获取KeyGenerator对象
+    /**
+     * 获取KeyGenerator对象
+     */
     if (configuration.hasKeyGenerator(keyStatementId)) {
       keyGenerator = configuration.getKeyGenerator(keyStatementId);
     } else {
       /**
-       * 使用数据库的自增key（jdbc执行sql语句后返回）
+       * 使用数据库的自增key
        */
       keyGenerator = context.getBooleanAttribute("useGeneratedKeys",
-              /**
-               * insert语句默认是使用全局的配置
-               */
           configuration.isUseGeneratedKeys() && SqlCommandType.INSERT.equals(sqlCommandType))
           ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;
     }
@@ -132,9 +139,10 @@ public class XMLStatementBuilder extends BaseBuilder {
      * XMLLanguageDriver使用XMLScriptBuilder创建<select>或<insert>或<update>或<delete>节点的SqlSource
      */
     SqlSource sqlSource = langDriver.createSqlSource(configuration, context, parameterTypeClass);
-    //sql语句执行类型
     StatementType statementType = StatementType.valueOf(context.getStringAttribute("statementType", StatementType.PREPARED.toString()));
-    //一系列参数
+    /**
+     * 一系列参数
+     */
     Integer fetchSize = context.getIntAttribute("fetchSize");
     Integer timeout = context.getIntAttribute("timeout");
     String parameterMap = context.getStringAttribute("parameterMap");
@@ -159,18 +167,23 @@ public class XMLStatementBuilder extends BaseBuilder {
         keyGenerator, keyProperty, keyColumn, databaseId, langDriver, resultSets);
   }
 
+  /**
+   * @param id sql语句的id
+   * @param parameterTypeClass 参数类型
+   * @param langDriver
+   */
   private void processSelectKeyNodes(String id, Class<?> parameterTypeClass, LanguageDriver langDriver) {
     /**
      * selectKeyNodes不会为null
      */
     List<XNode> selectKeyNodes = context.evalNodes("selectKey");
+
     /**
      * 解析selectKey节点，生成KeyGenerator对象
      */
     if (configuration.getDatabaseId() != null) {
       parseSelectKeyNodes(id, selectKeyNodes, parameterTypeClass, langDriver, configuration.getDatabaseId());
     }
-    //会检查的，不会重复解析
     parseSelectKeyNodes(id, selectKeyNodes, parameterTypeClass, langDriver, null);
     /**
      * 删除<selectKey>节点
@@ -195,20 +208,32 @@ public class XMLStatementBuilder extends BaseBuilder {
   }
 
   /**
+   * @param id selectKey的id
+   * @param nodeToHandle selectKey节点
+   * @param parameterTypeClass 参数类型
+   * @param langDriver
+   * @param databaseId
+   *
    * 解析selectKey节点，生成KeyGenerator对象
    */
   private void parseSelectKeyNode(String id, XNode nodeToHandle, Class<?> parameterTypeClass, LanguageDriver langDriver, String databaseId) {
-      //生成key的类型（别名）
+    /**
+     * key的类型
+     */
     String resultType = nodeToHandle.getStringAttribute("resultType");
-    //生成key的真实类型
     Class<?> resultTypeClass = resolveClass(resultType);
-    //生成key的sql语句类型
     StatementType statementType = StatementType.valueOf(nodeToHandle.getStringAttribute("statementType", StatementType.PREPARED.toString()));
-    //key对应对象的属性
+    /**
+     * key对应的属性名
+     */
     String keyProperty = nodeToHandle.getStringAttribute("keyProperty");
-    //key对应数据库表中的列名
+    /**
+     * key对应的列名
+     */
     String keyColumn = nodeToHandle.getStringAttribute("keyColumn");
-    //在insert语句执行之前还是之后执行
+    /**
+     * 在insert语句执行之前还是之后执行
+     */
     boolean executeBefore = "BEFORE".equals(nodeToHandle.getStringAttribute("order", "AFTER"));
 
     //defaults
@@ -236,16 +261,18 @@ public class XMLStatementBuilder extends BaseBuilder {
         resultSetTypeEnum, flushCache, useCache, resultOrdered,
         keyGenerator, keyProperty, keyColumn, databaseId, langDriver, null);
 
-    //id加上namespace
     id = builderAssistant.applyCurrentNamespace(id, false);
 
     MappedStatement keyStatement = configuration.getMappedStatement(id, false);
     /**
-     * 创建KeyGenerator，并且将其缓存到Configuration对象中
+     * 根据<selectKey>标签对应的MappedStatement对象生成KeyGenerator对象
      */
     configuration.addKeyGenerator(id, new SelectKeyGenerator(keyStatement, executeBefore));
   }
 
+  /**
+   * 删除<selectKey>节点
+   */
   private void removeSelectKeyNodes(List<XNode> selectKeyNodes) {
     for (XNode nodeToHandle : selectKeyNodes) {
       nodeToHandle.getParent().getNode().removeChild(nodeToHandle.getNode());

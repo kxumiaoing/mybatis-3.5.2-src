@@ -17,6 +17,9 @@ package org.apache.ibatis.logging;
 
 /**
  * @author Clinton Begin
+ *
+ * error、debug、trace、warn四个级别日志
+ *
  */
 public interface Log {
 

@@ -1,0 +1,19 @@
+@startuml
+
+note left of LanguageDriver
+    怎么解析动态字符串的sql语句并且创建对应的SqlSource对象
+end note
+
+class XMLLanguageDriver implements LanguageDriver
+
+note left of XMLLanguageDriver
+    拼接动态sql语句的"判断条件"是xml标签
+end note
+
+class RawLanguageDriver extends XMLLanguageDriver
+
+note left of RawLanguageDriver
+    只支持非动态sql语句
+end note
+
+@enduml

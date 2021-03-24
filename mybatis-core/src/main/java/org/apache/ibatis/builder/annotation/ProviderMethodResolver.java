@@ -16,12 +16,12 @@
 
 package org.apache.ibatis.builder.annotation;
 
+import org.apache.ibatis.builder.BuilderException;
+
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.apache.ibatis.builder.BuilderException;
 
 /**
  * The interface that resolve an SQL provider method via an SQL provider class.
@@ -49,6 +49,9 @@ public interface ProviderMethodResolver {
    * @throws BuilderException Throws when cannot resolve a target method
    */
   default Method resolveMethod(ProviderContext context) {
+    /**
+     * provider和mapper同名的方法
+     */
     List<Method> sameNameMethods = Arrays.stream(getClass().getMethods())
         .filter(m -> m.getName().equals(context.getMapperMethod().getName()))
         .collect(Collectors.toList());
@@ -56,6 +59,9 @@ public interface ProviderMethodResolver {
       throw new BuilderException("Cannot resolve the provider method because '"
           + context.getMapperMethod().getName() + "' not found in SqlProvider '" + getClass().getName() + "'.");
     }
+    /**
+     * 返回方法必须是String类型
+     */
     List<Method> targetMethods = sameNameMethods.stream()
         .filter(m -> CharSequence.class.isAssignableFrom(m.getReturnType()))
         .collect(Collectors.toList());

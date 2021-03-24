@@ -1,0 +1,31 @@
+@startuml
+
+note top of ObjectWrapper
+    对象包装器：通过MetaClass和MetaObject对象对象的属性进行访问
+end note
+
+class BaseWrapper implements ObjectWrapper
+
+note top of BaseWrapper
+    设置/获取集合类型属性对象子元素的值
+end note
+
+class MapWrapper extends BaseWrapper
+
+note top of MapWrapper
+    Map对象的包装器
+end note
+
+class CollectionWrapper implements ObjectWrapper
+
+note top of CollectionWrapper
+    集合对象的包装器
+end note
+
+class BeanWrapper extends BaseWrapper
+
+note top of BeanWrapper
+    一般对象的包装器
+end note
+
+@enduml

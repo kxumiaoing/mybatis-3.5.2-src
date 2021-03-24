@@ -1,0 +1,9 @@
+@startuml
+
+MetaObject o-- ObjectWrapper
+
+ObjectWrapper o-- MetaClass
+
+MetaClass o-- Reflector
+
+@enduml

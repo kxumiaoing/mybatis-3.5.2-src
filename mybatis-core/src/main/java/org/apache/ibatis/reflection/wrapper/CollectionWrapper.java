@@ -24,7 +24,9 @@ import java.util.List;
 
 /**
  * @author Clinton Begin
- * 集合的包裹器
+ *
+ * 集合的包裹器: 只支持添加元素操作
+ *
  */
 public class CollectionWrapper implements ObjectWrapper {
 

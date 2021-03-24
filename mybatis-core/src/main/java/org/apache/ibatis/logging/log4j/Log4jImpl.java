@@ -21,6 +21,9 @@ import org.apache.log4j.Logger;
 
 /**
  * @author Eduardo Macarron
+ *
+ * 委托给log4j的Logger对象
+ *
  */
 public class Log4jImpl implements Log {
 

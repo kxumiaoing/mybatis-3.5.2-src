@@ -24,27 +24,62 @@ import java.util.List;
 /**
  * @author Clinton Begin
  * 对象包裹器，提供对象的通用访问
+ *
+ * ObjectWrapper -> MetaClass -> Reflector
+ *
+ * 操作委托给MetaClass和MetaObject
+ *
  */
 public interface ObjectWrapper {
 
+  /**
+   * 通过属性名字获取属性
+   */
   Object get(PropertyTokenizer prop);
 
+  /**
+   * 通过属性名设置属性
+   */
   void set(PropertyTokenizer prop, Object value);
 
+  /**
+   * 查找属性名
+   */
   String findProperty(String name, boolean useCamelCaseMapping);
 
+  /**
+   * 所有getter方法的名字
+   */
   String[] getGetterNames();
 
+  /**
+   * 所有setter方法的名字
+   */
   String[] getSetterNames();
 
+  /**
+   * 根据属性名查找setter的参数类型
+   */
   Class<?> getSetterType(String name);
 
+  /**
+   * 根据属性名查找getter的返回值类型
+   */
   Class<?> getGetterType(String name);
 
+  /**
+   * 根据属性名判断是否有对应的setter
+   */
   boolean hasSetter(String name);
 
+  /**
+   * 根据属性名判断是否有对应的getter
+   */
   boolean hasGetter(String name);
 
+  /**
+   * 获取属性对象对应的MetaObject
+   */
   MetaObject instantiatePropertyValue(String name, PropertyTokenizer prop, ObjectFactory objectFactory);
 
   boolean isCollection();

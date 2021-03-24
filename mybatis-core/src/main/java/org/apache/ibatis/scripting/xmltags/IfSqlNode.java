@@ -33,7 +33,7 @@ public class IfSqlNode implements SqlNode {
     this.test = test;
     //实际的SqlNode
     this.contents = contents;
-    //表达式解析器
+    //表达式解析器（使用OGNL求值）
     this.evaluator = new ExpressionEvaluator();
   }
 

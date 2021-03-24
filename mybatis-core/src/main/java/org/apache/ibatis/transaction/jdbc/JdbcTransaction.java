@@ -15,15 +15,15 @@
  */
 package org.apache.ibatis.transaction.jdbc;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import javax.sql.DataSource;
-
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.session.TransactionIsolationLevel;
 import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.transaction.TransactionException;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * {@link Transaction} that makes use of the JDBC commit and rollback facilities directly.
@@ -56,12 +56,18 @@ public class JdbcTransaction implements Transaction {
 
   @Override
   public Connection getConnection() throws SQLException {
+    /**
+     * 没有连接就是使用DataSource打开一个连接
+     */
     if (connection == null) {
       openConnection();
     }
     return connection;
   }
 
+  /**
+   * 只有在手动提交的情况才手动提交事务
+   */
   @Override
   public void commit() throws SQLException {
     if (connection != null && !connection.getAutoCommit()) {
@@ -72,6 +78,9 @@ public class JdbcTransaction implements Transaction {
     }
   }
 
+  /**
+   * 只有在手动提交的情况才手动回滚事务
+   */
   @Override
   public void rollback() throws SQLException {
     if (connection != null && !connection.getAutoCommit()) {
@@ -85,6 +94,9 @@ public class JdbcTransaction implements Transaction {
   @Override
   public void close() throws SQLException {
     if (connection != null) {
+      /**
+       * 关闭之前，将连接的提交设置成自动提交
+       */
       resetAutoCommit();
       if (log.isDebugEnabled()) {
         log.debug("Closing JDBC Connection [" + connection + "]");
@@ -110,6 +122,9 @@ public class JdbcTransaction implements Transaction {
     }
   }
 
+  /**
+   * 将连接的提交设置成自动提交
+   */
   protected void resetAutoCommit() {
     try {
       if (!connection.getAutoCommit()) {
@@ -131,14 +146,23 @@ public class JdbcTransaction implements Transaction {
     }
   }
 
+  /**
+   * 打开一个新的连接
+   */
   protected void openConnection() throws SQLException {
     if (log.isDebugEnabled()) {
       log.debug("Opening JDBC Connection");
     }
     connection = dataSource.getConnection();
+    /**
+     * 设置好用户希望的事务隔离级别
+     */
     if (level != null) {
       connection.setTransactionIsolation(level.getLevel());
     }
+    /**
+     * 用户是否需要自动提交事务
+     */
     setDesiredAutoCommit(autoCommit);
   }
 

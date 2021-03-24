@@ -20,6 +20,9 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Clinton Begin
+ *
+ * 所有操作委托给commons-logging的Log
+ *
  */
 public class JakartaCommonsLoggingImpl implements org.apache.ibatis.logging.Log {
 

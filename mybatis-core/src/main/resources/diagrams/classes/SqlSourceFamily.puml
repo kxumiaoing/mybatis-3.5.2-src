@@ -1,0 +1,51 @@
+@startuml
+
+note top of SqlSource
+   需要解析参数信息的sql语句容器
+   （SqlSource是编译期间的sql语句，BoundSql是运行期间的sql语句）
+end note
+
+class ProviderSqlSource implements SqlSource
+ProviderSqlSource o-- DynamicSqlSource : 通过LanguageDriver动态依赖
+ProviderSqlSource o-- RawSqlSource : 通过LanguageDriver动态依赖
+ProviderSqlSource : <b>Configuration</b> <i>configuration</i>
+ProviderSqlSource : <b>Class<?></b> <i>providerType</i> //provider类型
+ProviderSqlSource : <b>LanguageDriver</b> <i>languageDriver</i> //模板语言驱动
+ProviderSqlSource : <b>Method</b> <i>mapperMethod</i> //mapper方法
+ProviderSqlSource : <b>Method</b> <i>providerMethod</i> //provider方法
+ProviderSqlSource : <b>String[]</b> <i>providerMethodArgumentNames</i> //provider方法参数名字
+ProviderSqlSource : <b>Class<?>[]</b> <i>providerMethodParameterTypes</i> //provider方法参数类型
+ProviderSqlSource : <b>ProviderContext</b> <i>providerContext</i> //provider方法中ProviderContext参数
+ProviderSqlSource : <b>Integer</b> <i>providerContextIndex</i>  //provider方法中ProviderContext参数的索引
+
+note bottom of ProviderSqlSource
+   需要解析参数信息的sql语句容器（sql语句是字符串格式，而不是xml格式）
+end note
+
+class DynamicSqlSource implements SqlSource
+DynamicSqlSource o-- StaticSqlSource : 动态依赖
+DynamicSqlSource : <b>Configuration</b> <i>configuration</i>
+DynamicSqlSource : <b>SqlNode</b> <i>rootSqlNode</i>
+
+note bottom of DynamicSqlSource
+    在运行期间解析完的sql语句（StaticSqlSource）
+end note
+
+class RawSqlSource implements SqlSource
+RawSqlSource *-- StaticSqlSource : 静态依赖
+RawSqlSource : <b>SqlSource</b> <i>sqlSource</i>
+
+note bottom of RawSqlSource
+    在编译期间解析完sql语句（StaticSqlSource）
+end note
+
+class StaticSqlSource implements SqlSource
+StaticSqlSource : <b>String</b> <i>sql</i> //最终的sql语句
+StaticSqlSource : <b>List<ParameterMapping></b> <i>parameterMappings</i> //参数信息
+StaticSqlSource : <b>Configuration</b> <i>configuration</i>
+
+note bottom of StaticSqlSource
+   参数信息解析完成的sql语句容器
+end note
+
+@enduml

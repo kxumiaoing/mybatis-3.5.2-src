@@ -44,6 +44,9 @@ public final class PropertyNamer {
       throw new ReflectionException("Error parsing property name '" + name + "'.  Didn't start with 'is', 'get' or 'set'.");
     }
 
+    /**
+     * 第二字符小写，那么第一个字符一定是大写，必须变成小写
+     */
     if (name.length() == 1 || (name.length() > 1 && !Character.isUpperCase(name.charAt(1)))) {
       name = name.substring(0, 1).toLowerCase(Locale.ENGLISH) + name.substring(1);
     }
@@ -51,17 +54,23 @@ public final class PropertyNamer {
     return name;
   }
 
-  //判断是否是属性，有getter或者setter
+  /**
+   * 方法是否对应一个属性
+   */
   public static boolean isProperty(String name) {
     return isGetter(name) || isSetter(name);
   }
 
-  //是getter方法名
+  /**
+   * getter方法命名
+   */
   public static boolean isGetter(String name) {
     return (name.startsWith("get") && name.length() > 3) || (name.startsWith("is") && name.length() > 2);
   }
 
-  //是setter方法名
+  /**
+   * setter方法命名
+   */
   public static boolean isSetter(String name) {
     return name.startsWith("set") && name.length() > 3;
   }

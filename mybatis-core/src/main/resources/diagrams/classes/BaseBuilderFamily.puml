@@ -1,16 +1,17 @@
 @startuml
 
-class XMLConfigBuilder extends BaseBuilder
-
 note top of BaseBuilder
     基础builder，主要功能就是将字符串转换成类或者对象
 end note
+
+class XMLConfigBuilder extends BaseBuilder
 
 note top of XMLConfigBuilder
     解析配置文件（xml文件），构建Configuration对象
 end note
 
 class XMLMapperBuilder extends BaseBuilder
+XMLMapperBuilder o-- MapperBuilderAssistant
 
 note top of XMLMapperBuilder
     解析Mapper配置文件（xml文件）
@@ -18,27 +19,26 @@ end note
 
 class MapperBuilderAssistant extends BaseBuilder
 
-note top of MapperBuilderAssistant
+note bottom of MapperBuilderAssistant
     协助解析Mapper配置文件（xml文件），主要是实例化Mapper使用到脚手架对象
 end note
 
 class XMLStatementBuilder extends BaseBuilder
 
-note top of XMLStatementBuilder
+note bottom of XMLStatementBuilder
     解析<insert>|<update>|<delete>|<select>标签，构建MapperedStatement对象
 end note
 
 class XMLScriptBuilder extends BaseBuilder
 
 note top of XMLScriptBuilder
-    解析sql脚本片段，借助SqlSourceBuilder构造SqlSource对象
-    （DynamicSqlSource和RawSqlSource）
+    解析sql语句（多个脚本片段），借助SqlSourceBuilder构造SqlSource对象
 end note
 
 class SqlSourceBuilder extends BaseBuilder
 
-note top of SqlSourceBuilder
-    根据sql构造StaticSqlSource对象
+note bottom of SqlSourceBuilder
+   解析sql语句中的参数信息，构造StaticSqlSource对象
 end note
 
 class SqlSourceBuilder.ParameterMappingTokenHandler extends BaseBuilder

@@ -20,6 +20,9 @@ import java.lang.reflect.Constructor;
 /**
  * @author Clinton Begin
  * @author Eduardo Macarron
+ *
+ * 将打印日志的实际操作委托给其他的日志框架
+ *
  */
 public final class LogFactory {
 
@@ -28,8 +31,14 @@ public final class LogFactory {
    */
   public static final String MARKER = "MYBATIS";
 
+  /**
+   * Log的构造器
+   */
   private static Constructor<? extends Log> logConstructor;
 
+  /**
+   * 顺序：slf4j、commons-logging、log4j2、log4j、java.util.logging、nologging
+   */
   static {
     tryImplementation(LogFactory::useSlf4jLogging);
     tryImplementation(LogFactory::useCommonsLogging);
@@ -43,6 +52,11 @@ public final class LogFactory {
     // disable construction
   }
 
+  /**
+   * #####################################################
+   * ################# 获取Log的实例 ####################
+   * #####################################################
+   */
   public static Log getLog(Class<?> aClass) {
     return getLog(aClass.getName());
   }
@@ -55,6 +69,11 @@ public final class LogFactory {
     }
   }
 
+  /**
+   * #####################################################
+   * ################# 不同日志的实现 ####################
+   * #####################################################
+   */
   public static synchronized void useCustomLogging(Class<? extends Log> clazz) {
     setImplementation(clazz);
   }
@@ -97,6 +116,9 @@ public final class LogFactory {
     }
   }
 
+  /**
+   * 根据实现类来设置Log的构造器
+   */
   private static void setImplementation(Class<? extends Log> implClass) {
     try {
       Constructor<? extends Log> candidate = implClass.getConstructor(String.class);

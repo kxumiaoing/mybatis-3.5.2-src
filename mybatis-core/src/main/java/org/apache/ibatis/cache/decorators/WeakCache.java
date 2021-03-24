@@ -15,12 +15,12 @@
  */
 package org.apache.ibatis.cache.decorators;
 
+import org.apache.ibatis.cache.Cache;
+
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.Deque;
 import java.util.LinkedList;
-
-import org.apache.ibatis.cache.Cache;
 
 /**
  * Weak Reference cache decorator.
@@ -72,6 +72,9 @@ public class WeakCache implements Cache {
       if (result == null) {
         delegate.removeObject(key);
       } else {
+        /**
+         * 代码有问题，参考WeakSoft
+         */
         hardLinksToAvoidGarbageCollection.addFirst(result);
         if (hardLinksToAvoidGarbageCollection.size() > numberOfHardLinks) {
           hardLinksToAvoidGarbageCollection.removeLast();
@@ -89,6 +92,9 @@ public class WeakCache implements Cache {
 
   @Override
   public void clear() {
+    /**
+     * 代码有问题，参考WeakSoft
+     */
     hardLinksToAvoidGarbageCollection.clear();
     removeGarbageCollectedItems();
     delegate.clear();

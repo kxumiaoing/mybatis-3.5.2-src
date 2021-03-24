@@ -34,6 +34,9 @@ public class ErrorContext {
   private ErrorContext() {
   }
 
+  /**
+   * 在ThreadLocal上注册一个ErrorContext实例
+   */
   public static ErrorContext instance() {
     ErrorContext context = LOCAL.get();
     if (context == null) {
@@ -43,6 +46,9 @@ public class ErrorContext {
     return context;
   }
 
+  /**
+   * ErrorContext进栈
+   */
   public ErrorContext store() {
     ErrorContext newContext = new ErrorContext();
     newContext.stored = this;
@@ -50,6 +56,9 @@ public class ErrorContext {
     return LOCAL.get();
   }
 
+  /**
+   * ErrorContext出栈
+   */
   public ErrorContext recall() {
     if (stored != null) {
       LOCAL.set(stored);
@@ -58,36 +67,57 @@ public class ErrorContext {
     return LOCAL.get();
   }
 
+  /**
+   * 资源
+   */
   public ErrorContext resource(String resource) {
     this.resource = resource;
     return this;
   }
 
+  /**
+   * 活动
+   */
   public ErrorContext activity(String activity) {
     this.activity = activity;
     return this;
   }
 
+  /**
+   * 对象
+   */
   public ErrorContext object(String object) {
     this.object = object;
     return this;
   }
 
+  /**
+   * 信息
+   */
   public ErrorContext message(String message) {
     this.message = message;
     return this;
   }
 
+  /**
+   * sql语句
+   */
   public ErrorContext sql(String sql) {
     this.sql = sql;
     return this;
   }
 
+  /**
+   * 异常
+   */
   public ErrorContext cause(Throwable cause) {
     this.cause = cause;
     return this;
   }
 
+  /**
+   * 清零
+   */
   public ErrorContext reset() {
     resource = null;
     activity = null;

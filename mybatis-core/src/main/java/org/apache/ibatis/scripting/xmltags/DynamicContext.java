@@ -40,6 +40,9 @@ public class DynamicContext {
   public static final String DATABASE_ID_KEY = "_databaseId";
 
   static {
+    /**
+     * 设置ContextMap的属性访问器为ContextAccessor
+     */
     OgnlRuntime.setPropertyAccessor(ContextMap.class, new ContextAccessor());
   }
 
@@ -55,26 +58,27 @@ public class DynamicContext {
 
   /**
    * @param configuration Configuration对象
-   * @param parameterObject 提供参数的对象，这个是动态sql语句的关键：sql语句的动态部分由这个对象决定
+   * @param parameterObject 提供参数的对象
    */
   public DynamicContext(Configuration configuration, Object parameterObject) {
     /**
-     * ContextMap的作用：
-     * 1、保存附加参数（动态上下文的原因所在）
-     * 2、保存实际入参（非Map类型）的MetaObject
+     * ContextMap的作用：套在原始参数外面，可以用来存放运行时bind的参数
      */
     if (parameterObject != null && !(parameterObject instanceof Map)) {
       MetaObject metaObject = configuration.newMetaObject(parameterObject);
       /**
-       * 有TypeHandler表示提供参数的对象是一个“简单”的对象，不是一个参数值的集合
+       * 有TypeHandler表示该值是基础类型
        */
       boolean existsTypeHandler = configuration.getTypeHandlerRegistry().hasTypeHandler(parameterObject.getClass());
       bindings = new ContextMap(metaObject, existsTypeHandler);
     } else {
+      /**
+       * Map类型的参数，在ContextMap中没有对应的MetaObject，不需要通过反射来求取key对应的value
+       */
       bindings = new ContextMap(null, false);
     }
     /**
-     * 3、保存实际入参
+     * 原始参数
      */
     bindings.put(PARAMETER_OBJECT_KEY, parameterObject);
     bindings.put(DATABASE_ID_KEY, configuration.getDatabaseId());
@@ -106,9 +110,18 @@ public class DynamicContext {
     return uniqueNumber++;
   }
 
+  /**
+   * 原始参数的Map外套（Map外套的作用是存放运行时bind的参数）
+   */
   static class ContextMap extends HashMap<String, Object> {
     private static final long serialVersionUID = 2977601501966151582L;
+    /**
+     * 参数对应的MetaObject对象（通过反射获取对象的属性值）
+     */
     private final MetaObject parameterMetaObject;
+    /**
+     * 找不到对应属性时，是否使用原始参数对象
+     */
     private final boolean fallbackParameterObject;
 
     public ContextMap(MetaObject parameterMetaObject, boolean fallbackParameterObject) {
@@ -120,7 +133,7 @@ public class DynamicContext {
     public Object get(Object key) {
       String strKey = (String) key;
       /**
-       * 绑定到上下文中的值（附加参数）
+       * 从Map中查找
        */
       if (super.containsKey(strKey)) {
         return super.get(strKey);
@@ -130,20 +143,24 @@ public class DynamicContext {
         return null;
       }
 
-      /**
-       * 使用MetaObject求值了
-       */
       if (fallbackParameterObject && !parameterMetaObject.hasGetter(strKey)) {
-          //没有getter就使用原始对象
+        /**
+         * 使用原始参数对象
+         */
         return parameterMetaObject.getOriginalObject();
       } else {
         // issue #61 do not modify the context when reading
-        //有getter，就根据getter获取属性的值
+        /**
+         * 通过MetaObject获取属性值
+         */
         return parameterMetaObject.getValue(strKey);
       }
     }
   }
 
+  /**
+   * ContextMap的属性访问器
+   */
   static class ContextAccessor implements PropertyAccessor {
 
     @Override
@@ -156,7 +173,7 @@ public class DynamicContext {
      */
     public Object getProperty(Map context, Object target, Object name) {
       /**
-       * 非Map类型的入参，通过MetaObject或者附加参数来获取参数
+       * 外层Map求取属性
        */
       Map map = (Map) target;
 
@@ -166,7 +183,7 @@ public class DynamicContext {
       }
 
       /**
-       * Map类型的入参，从map中获取参数
+       * 原始参数上求取属性（原始参数如果不是Map的实例，已经被外层Map（ContextMap）给代理了）
        */
       Object parameterObject = map.get(PARAMETER_OBJECT_KEY);
       if (parameterObject instanceof Map) {
@@ -178,7 +195,7 @@ public class DynamicContext {
 
     @Override
     /**
-     * 往target上设置值
+     * 设置属性
      */
     public void setProperty(Map context, Object target, Object name, Object value) {
       Map<Object, Object> map = (Map<Object, Object>) target;

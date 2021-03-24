@@ -15,10 +15,10 @@
  */
 package org.apache.ibatis.cache.decorators;
 
+import org.apache.ibatis.cache.Cache;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import org.apache.ibatis.cache.Cache;
 
 /**
  * Lru (least recently used) cache decorator.
@@ -54,6 +54,9 @@ public class LruCache implements Cache {
       protected boolean removeEldestEntry(Map.Entry<Object, Object> eldest) {
         boolean tooBig = size() > size;
         if (tooBig) {
+          /**
+           * 缓存最老的key，被代理cache用来删除缓存
+           */
           eldestKey = eldest.getKey();
         }
         return tooBig;
@@ -69,6 +72,9 @@ public class LruCache implements Cache {
 
   @Override
   public Object getObject(Object key) {
+    /**
+     * 更新LinkedHashMap中key的访问信息
+     */
     keyMap.get(key); //touch
     return delegate.getObject(key);
   }

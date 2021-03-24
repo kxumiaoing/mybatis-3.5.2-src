@@ -32,29 +32,94 @@ import java.util.List;
  * @author Clinton Begin
  */
 public final class MappedStatement {
-
+  /**
+   * sql语句所在文件路径
+   */
   private String resource;
   private Configuration configuration;
+  /**
+   * id
+   */
   private String id;
+  /**
+   * select语句获取对象大小
+   */
   private Integer fetchSize;
+  /**
+   * 执行sql的超时时间
+   */
   private Integer timeout;
+  /**
+   * sql语句执行类型
+   */
   private StatementType statementType;
+  /**
+   * 结果集类型
+   */
   private ResultSetType resultSetType;
+  /**
+   * sql语句以及参数信息
+   */
   private SqlSource sqlSource;
+  /**
+   * 缓存
+   */
   private Cache cache;
+  /**
+   * 废弃
+   */
   private ParameterMap parameterMap;
+  /**
+   * 对应的ResultMap
+   */
   private List<ResultMap> resultMaps;
+  /**
+   * 是否刷新缓存
+   */
   private boolean flushCacheRequired;
+  /**
+   * 是否使用缓存
+   */
   private boolean useCache;
+  /**
+   * 结果集是否排序
+   */
   private boolean resultOrdered;
+  /**
+   * sql语句类型
+   */
   private SqlCommandType sqlCommandType;
+  /**
+   * key值生成器
+   */
   private KeyGenerator keyGenerator;
+  /**
+   * key对应的属性
+   */
   private String[] keyProperties;
+  /**
+   * key对应的列名称
+   */
   private String[] keyColumns;
+  /**
+   * 是否有嵌套ResultMap
+   */
   private boolean hasNestedResultMaps;
+  /**
+   * 数据库id
+   */
   private String databaseId;
+  /**
+   * 日志
+   */
   private Log statementLog;
+  /**
+   * 解析sql语句的语言驱动
+   */
   private LanguageDriver lang;
+  /**
+   * 多个结果集的名字
+   */
   private String[] resultSets;
 
   MappedStatement() {

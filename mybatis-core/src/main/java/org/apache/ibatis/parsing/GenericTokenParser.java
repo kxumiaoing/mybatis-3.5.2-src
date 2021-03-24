@@ -20,8 +20,17 @@ package org.apache.ibatis.parsing;
  */
 public class GenericTokenParser {
 
+  /**
+   * 起始token
+   */
   private final String openToken;
+  /**
+   * 结束token
+   */
   private final String closeToken;
+  /**
+   * 组合了TokenHandler对象来解析变量
+  */
   private final TokenHandler handler;
 
   public GenericTokenParser(String openToken, String closeToken, TokenHandler handler) {
@@ -31,7 +40,7 @@ public class GenericTokenParser {
   }
 
   /**
-   * 进行参数名到参数值的替换
+   * 解析字符串中变量表达式（不支持嵌套）
    */
   public String parse(String text) {
     //空值
@@ -52,54 +61,90 @@ public class GenericTokenParser {
     final StringBuilder builder = new StringBuilder();
     StringBuilder expression = null;
     while (start > -1) {
-      //如果是$的转义符
+      /**
+       * 有转移字符，计算的start不正确，需要重新计算
+       */
       if (start > 0 && src[start - 1] == '\\') {
         // this open token is escaped. remove the backslash and continue.
+        /**
+         * 起始token被转义，当作一般字符来直接缓存
+         */
         builder.append(src, offset, start - offset - 1).append(openToken);
+        /**
+         * 调整offset
+         */
         offset = start + openToken.length();
       } else {
         // found open token. let's search close token.
-        //清空expression
+        /**
+         * 清空expression，以备缓存变量表达式
+         */
         if (expression == null) {
           expression = new StringBuilder();
         } else {
           expression.setLength(0);
         }
-        //openToken之前的保留
+        /**
+         * 缓存一般字符串
+         */
         builder.append(src, offset, start - offset);
-        //跳过openToken
+        /**
+         * 调整offset
+         */
         offset = start + openToken.length();
 
-        //closeToken索引
+        /**
+         * 结束token索引位置
+         */
         int end = text.indexOf(closeToken, offset);
         while (end > -1) {
+          /**
+           * 结束token被转义，当作一般字符来处理
+           */
           if (end > offset && src[end - 1] == '\\') {
             // this close token is escaped. remove the backslash and continue.
             expression.append(src, offset, end - offset - 1).append(closeToken);
             offset = end + closeToken.length();
+            /**
+             * 寻找下一个结束token位置
+             */
             end = text.indexOf(closeToken, offset);
           } else {
+            /**
+             * expression抠出变量表达式部分
+             */
             expression.append(src, offset, end - offset);
             break;
           }
         }
-        //如果没有closeToken，
+        /**
+         * 没有找到结束token，起始token不是一个有效的边界token，被当作一般字符来处理
+         */
         if (end == -1) {
           // close token was not found.
           builder.append(src, start, src.length - start);
           offset = src.length;
         } else {
-          //使用TokenHanlder解析expression的值
+          /**
+           * 使用TokenHandler解析变量表达式的值
+           */
           builder.append(handler.handleToken(expression.toString()));
-          //跳过closeToken
+          /**
+           * offset跳过结束token，为下一次循环做准备
+           */
           offset = end + closeToken.length();
         }
       }
 
-      //继续找下一个openToken
+      /**
+       * 继续寻找下一个变量表达式
+       */
       start = text.indexOf(openToken, offset);
     }
-    //尾巴
+
+    /**
+     * 结束token后面的尾巴
+     */
     if (offset < src.length) {
       builder.append(src, offset, src.length - offset);
     }

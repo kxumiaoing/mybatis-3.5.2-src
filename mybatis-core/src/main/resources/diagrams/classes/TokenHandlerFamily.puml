@@ -1,0 +1,38 @@
+@startuml
+
+
+TokenHandler :  String handleToken(String content)
+note top of TokenHandler
+    解析变量表达式的值
+end note
+
+''''''''''''''''''''''''''''''''''''''''''''''
+class PropertyParser.VariableTokenHandler extends TokenHandler
+
+note top of PropertyParser.VariableTokenHandler
+    基于属性字典，解析变量表达式的值
+end note
+
+''''''''''''''''''''''''''''''''''''''''''''''
+class SqlSourceBuilder.ParameterMappingTokenHandler extends TokenHandler
+
+note top of SqlSourceBuilder.ParameterMappingTokenHandler
+    解析sql语句中的参数描述信息，并且将sql语句中的参数替换成？
+end note
+
+
+''''''''''''''''''''''''''''''''''''''''''''''
+class TextSqlNode.DynamicCheckerTokenParser extends TokenHandler
+
+note top of TextSqlNode.DynamicCheckerTokenParser
+    检测sql语句是否是动态的
+end note
+
+''''''''''''''''''''''''''''''''''''''''''''''
+class TextSqlNode.BindingTokenParser extends TokenHandler
+
+note top of TextSqlNode.BindingTokenParser
+    通过OGNL上下文求取变量的值
+end note
+
+@enduml

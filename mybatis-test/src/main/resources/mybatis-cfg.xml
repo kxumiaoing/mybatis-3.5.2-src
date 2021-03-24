@@ -41,13 +41,6 @@
     <objectFactory type="org.mybatis.example.ExampleObjectFactory">
         <property name="someProperty" value="100"/>
     </objectFactory>
-    <!-- 与Mapper中的databaseId对应  -->
-    <databaseIdProvider type="DB_VENDOR">
-        <!-- 属性只是一些别名而已 -->
-        <property name="SQL Server" value="sqlserver"/>
-        <property name="DB2" value="db2"/>
-        <property name="Oracle" value="oracle" />
-    </databaseIdProvider>
     <environments default="development">
         <environment id="development">
             <transactionManager type="JDBC"/>
@@ -59,6 +52,13 @@
             </dataSource>
         </environment>
     </environments>
+    <!-- 与Mapper中的databaseId对应  -->
+    <databaseIdProvider type="DB_VENDOR">
+        <!-- 属性只是一些别名而已 -->
+        <property name="SQL Server" value="sqlserver"/>
+        <property name="DB2" value="db2"/>
+        <property name="Oracle" value="oracle" />
+    </databaseIdProvider>
     <typeHandlers>
         <package name="org.mybatis.example"/>
         <typeHandler handler="org.mybatis.example.ExampleTypeHandler"/>

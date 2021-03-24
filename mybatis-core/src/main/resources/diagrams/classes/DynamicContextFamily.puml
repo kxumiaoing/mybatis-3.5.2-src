@@ -1,0 +1,44 @@
+@startuml
+
+
+note top of DynamicContext
+    执行sql相关操作的上下文
+end note
+
+DynamicContext : <b>ContextMap</b> <i>bindings</i> //原始参数以及运行时参数
+DynamicContext : <b>StringJoiner</b> <i>sqlBuilder</i> //解析完成后的sql
+DynamicContext : <b>int</b> <i>uniqueNumber</i> //递增计数器，用于foreach循环上下文
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+class TrimSqlNode.FilteredDynamicContext extends DynamicContext
+TrimSqlNode.FilteredDynamicContext o-- DynamicContext
+TrimSqlNode.FilteredDynamicContext : <b>boolean</b> <i> prefixApplied</i>
+TrimSqlNode.FilteredDynamicContext : <b>boolean</b> <i> suffixApplied</i>
+TrimSqlNode.FilteredDynamicContext : <b>DynamicContext</b> <i> delegate</i>
+
+note top of TrimSqlNode.FilteredDynamicContext
+    将局部多个sql片段拼接成大段sql（处理前/后缀）
+end note
+
+class ForEachSqlNode.PrefixedContext extends DynamicContext
+ForEachSqlNode.PrefixedContext o-- DynamicContext
+ForEachSqlNode.PrefixedContext : <b>String</b> <i> prefix</i>
+ForEachSqlNode.PrefixedContext : <b>boolean</b> <i> prefixApplied</i>
+ForEachSqlNode.PrefixedContext : <b>DynamicContext</b> <i> delegate</i>
+
+note top of ForEachSqlNode.PrefixedContext
+    处理foreach分隔符前缀
+end note
+
+class ForEachSqlNode.FilteredDynamicContext extends DynamicContext
+ForEachSqlNode.FilteredDynamicContext o-- DynamicContext
+ForEachSqlNode.FilteredDynamicContext : <b>int</b> <i> index</i>
+ForEachSqlNode.FilteredDynamicContext : <b>String</b> <i> itemIndex</i>
+ForEachSqlNode.FilteredDynamicContext : <b>String </b> <i>item</i>
+ForEachSqlNode.FilteredDynamicContext : <b>DynamiContext</b> <i>delegate</i>
+
+note bottom of ForEachSqlNode.FilteredDynamicContext
+    平铺foreach循环（将foreach的变量名字替换成运行时变量名）
+end note
+
+@enduml

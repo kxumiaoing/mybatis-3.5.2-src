@@ -20,6 +20,11 @@ import org.slf4j.Logger;
 
 /**
  * @author Eduardo Macarron
+ *
+ * 很类似代理模式和适配器模式，但是没有实现同一个接口
+ *
+ * 所有操作委托给slf4j的Logger对象
+ *
  */
 class Slf4jLoggerImpl implements Log {
 

@@ -24,11 +24,19 @@ import org.slf4j.spi.LocationAwareLogger;
 /**
  * @author Clinton Begin
  * @author Eduardo Macarron
+ *
+ * 代理模式
+ *
  */
 public class Slf4jImpl implements Log {
-
+  /**
+   * 被代理对象
+   */
   private Log log;
 
+  /**
+   * 两种被代理对象对应两种slf4j的Logger
+   */
   public Slf4jImpl(String clazz) {
     Logger logger = LoggerFactory.getLogger(clazz);
 
@@ -44,6 +52,9 @@ public class Slf4jImpl implements Log {
     }
 
     // Logger is not LocationAwareLogger or slf4j version < 1.6
+    /**
+     * 被代理对象引用到了slf4j的Logger对象
+     */
     log = new Slf4jLoggerImpl(logger);
   }
 

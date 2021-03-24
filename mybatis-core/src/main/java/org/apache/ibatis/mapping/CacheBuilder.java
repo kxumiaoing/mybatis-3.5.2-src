@@ -33,9 +33,21 @@ import java.util.Properties;
  * @author Clinton Begin
  */
 public class CacheBuilder {
+  /**
+   * 一般保存用来命令空间
+   */
   private final String id;
+  /**
+   * 被装饰类型
+   */
   private Class<? extends Cache> implementation;
+  /**
+   * 装饰类型
+   */
   private final List<Class<? extends Cache>> decorators;
+  /**
+   * 以下是一些参数
+   */
   private Integer size;
   private Long clearInterval;
   private boolean readWrite;
@@ -85,26 +97,38 @@ public class CacheBuilder {
   }
 
   public Cache build() {
-    //默认类型设置
+    /**
+     * 设置默认值
+     */
     setDefaultImplementations();
-    //使用构造器构造一个缓存实例
+    /**
+     * 被装饰对象
+     */
     Cache cache = newBaseCacheInstance(implementation, id);
-    //设置属性
+    /**
+     * 设置属性，并且初始化
+     */
     setCacheProperties(cache);
 
     // issue #352, do not apply decorators to custom caches
     if (PerpetualCache.class.equals(cache.getClass())) {
-      //装饰器，有多少层装饰器，就包装几层
+      /**
+       * 装饰器，有多少层装饰器，就包装几层
+       */
       for (Class<? extends Cache> decorator : decorators) {
-        //使用有参构造器构造缓存对象
+        /**
+         * 使用有参构造器构造缓存对象
+         */
         cache = newCacheDecoratorInstance(decorator, cache);
         setCacheProperties(cache);
       }
-      //根据一些配置，包装底层缓存
+      /**
+       * 固定属性都是通过装饰器来实现的
+       */
       cache = setStandardDecorators(cache);
     } else if (!LoggingCache.class.isAssignableFrom(cache.getClass())) {
       /**
-       * 如果是用户自定义的缓存，为这个缓存加上日志
+       * 如果被装饰对象本来就是一个装饰对象，那么只给它加上命中率统计的装饰器
        */
       cache = new LoggingCache(cache);
     }
@@ -121,23 +145,42 @@ public class CacheBuilder {
   }
 
   /**
-   * 缓存的其他一些配置都是通过装饰起来实现的，包了一层又一层
+   * 一些固定属性都是通过特定的装饰器来实现的
+   * BlockingCache->SynchronizedCache->LoggingCache->SerializedCache->ScheduledCache->FifoCache/LruCache/SoftCache/WeakCache->PerpetualCache
    */
   private Cache setStandardDecorators(Cache cache) {
     try {
       MetaObject metaCache = SystemMetaObject.forObject(cache);
+      /**
+       * 设置大小
+       */
       if (size != null && metaCache.hasSetter("size")) {
         metaCache.setValue("size", size);
       }
+      /**
+       * ScheduledCache装饰器来实现定时清理缓存
+       */
       if (clearInterval != null) {
         cache = new ScheduledCache(cache);
         ((ScheduledCache) cache).setClearInterval(clearInterval);
       }
+      /**
+       * SerializedCache装饰器来实现可读写的缓存（系列化）
+       */
       if (readWrite) {
         cache = new SerializedCache(cache);
       }
+      /**
+       * 统计缓存命中率
+       */
       cache = new LoggingCache(cache);
+      /**
+       * 给缓存套上同步的套子
+       */
       cache = new SynchronizedCache(cache);
+      /**
+       * 给缓存套上排它锁的套子（只有命中了才释放锁）
+       */
       if (blocking) {
         cache = new BlockingCache(cache);
       }
@@ -147,9 +190,15 @@ public class CacheBuilder {
     }
   }
 
+  /**
+   * 设置属性，并且初始化
+   */
   private void setCacheProperties(Cache cache) {
     if (properties != null) {
       MetaObject metaCache = SystemMetaObject.forObject(cache);
+      /**
+       * 通过MetaObject来设置Cache对象的属性
+       */
       for (Map.Entry<Object, Object> entry : properties.entrySet()) {
         String name = (String) entry.getKey();
         String value = (String) entry.getValue();
@@ -186,7 +235,9 @@ public class CacheBuilder {
       }
     }
 
-    //如果需要初始化，在设置所有属性之后进行初始化
+    /**
+     * 如果实现了InitializingObject接口，那么就地调用initialize方法
+     */
     if (InitializingObject.class.isAssignableFrom(cache.getClass())) {
       try {
         ((InitializingObject) cache).initialize();
@@ -197,6 +248,9 @@ public class CacheBuilder {
     }
   }
 
+  /**
+   * 使用构造方法创建一个实例
+   */
   private Cache newBaseCacheInstance(Class<? extends Cache> cacheClass, String id) {
     Constructor<? extends Cache> cacheConstructor = getBaseCacheConstructor(cacheClass);
     try {
@@ -206,6 +260,9 @@ public class CacheBuilder {
     }
   }
 
+  /**
+   * 构造方法
+   */
   private Constructor<? extends Cache> getBaseCacheConstructor(Class<? extends Cache> cacheClass) {
     try {
       return cacheClass.getConstructor(String.class);
@@ -215,6 +272,9 @@ public class CacheBuilder {
     }
   }
 
+  /**
+   * 使用构造方法创建一个实例
+   */
   private Cache newCacheDecoratorInstance(Class<? extends Cache> cacheClass, Cache base) {
     Constructor<? extends Cache> cacheConstructor = getCacheDecoratorConstructor(cacheClass);
     try {
@@ -224,6 +284,9 @@ public class CacheBuilder {
     }
   }
 
+  /**
+   * 构造方法
+   */
   private Constructor<? extends Cache> getCacheDecoratorConstructor(Class<? extends Cache> cacheClass) {
     try {
       return cacheClass.getConstructor(Cache.class);

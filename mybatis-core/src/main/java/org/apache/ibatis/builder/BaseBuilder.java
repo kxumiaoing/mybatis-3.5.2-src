@@ -64,6 +64,11 @@ public abstract class BaseBuilder {
   }
 
   /**
+   * #############################################################
+   *                字符串到真实值转换（提供默认值）
+   * #############################################################
+   */
+  /**
    * 正则模式
    */
   protected Pattern parseExpression(String regex, String defaultValue) {
@@ -164,7 +169,7 @@ public abstract class BaseBuilder {
   }
 
   /**
-   * 根据处理器类能处理的java类或者TypeHandler类的别名，获取它的实例对象
+   * 根据TypeHandler别名获取对应的实例（javaType用来查找构造器）
    */
   protected TypeHandler<?> resolveTypeHandler(Class<?> javaType, String typeHandlerAlias) {
     if (typeHandlerAlias == null) {
@@ -181,14 +186,16 @@ public abstract class BaseBuilder {
   }
 
   /**
-   * 根据处理器类能处理的java类或者TypeHandler类的Class，获取它的实例对象
+   * 根据TypeHandler类型获取对应的实例
    */
   protected TypeHandler<?> resolveTypeHandler(Class<?> javaType, Class<? extends TypeHandler<?>> typeHandlerType) {
     if (typeHandlerType == null) {
       return null;
     }
     // javaType ignored for injected handlers see issue #746 for full detail
-    //精确获取
+    /**
+     * 按照TypeHandler类型获取TypeHandler实例
+     */
     TypeHandler<?> handler = typeHandlerRegistry.getMappingTypeHandler(typeHandlerType);
     //匹配获取
     if (handler == null) {

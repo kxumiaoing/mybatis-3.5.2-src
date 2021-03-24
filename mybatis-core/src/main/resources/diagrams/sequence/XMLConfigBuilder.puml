@@ -1,0 +1,50 @@
+@startuml
+title XMLConfigBuilder.parse
+
+XMLConfigBuilder -> XMLConfigBuilder1:1、propertiesElement()：解析<properties>标签
+XMLConfigBuilder -> XMLConfigBuilder1:2、settingsAsProperties()：解析settings节点
+XMLConfigBuilder -> XMLConfigBuilder1:_3、loadCustomVfs()：加载用户定义的VFS
+XMLConfigBuilder -> XMLConfigBuilder1:_4、loadCustomLogImpl()：加载日志的实现
+XMLConfigBuilder -> XMLConfigBuilder1:3、typeAliasesElement()：注册类型的别名
+XMLConfigBuilder -> XMLConfigBuilder1:4、pluginElement()：解析插件节点
+XMLConfigBuilder -> XMLConfigBuilder1:5、objectFactoryElement()：解析对象工厂节点
+XMLConfigBuilder -> XMLConfigBuilder1:6、objectWrapperFactoryElement()：解析对象包裹器工厂
+XMLConfigBuilder -> XMLConfigBuilder1:7、reflectorFactoryElement()：解析反射器工厂
+XMLConfigBuilder -> XMLConfigBuilder1:8、settingsElement()：将属性设置到Configuration中
+XMLConfigBuilder -> XMLConfigBuilder1:9、environmentsElement()：解析环境设置
+XMLConfigBuilder -> XMLConfigBuilder1:10、databaseIdProviderElement()：解析databaseId提供者
+XMLConfigBuilder -> XMLConfigBuilder1:11、typeHandlerElement()：解析类型处理器
+XMLConfigBuilder -> XMLConfigBuilder1:12、mapperElement()：解析Mapper
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+XMLConfigBuilder1 -> XMLMapperBuilder:parse()：解析Mapper的xml文件
+XMLMapperBuilder -> XMLMapperBuilder1:1、cacheRefElement()：解析<cache-ref>标签
+XMLMapperBuilder -> XMLMapperBuilder1:2、cacheElement()：解析<cache>标签
+XMLMapperBuilder -> XMLMapperBuilder1:3、resultMapElements()：解析<resultMap>标签
+XMLMapperBuilder -> XMLMapperBuilder1:4、buildStatementFromContext()：解析<select>、<update>、<delete>和<insert>标签
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+XMLMapperBuilder1 -> XMLStatementBuilder:parseStatementNode()：解析sql语句标签
+XMLStatementBuilder -> XMLIncludeTransformer: 1、applyIncludes()：解析<selectKey>标签
+XMLStatementBuilder -> XMLStatementBuilder1: 2、processSelectKeyNodes()：解析<selectKey>标签
+XMLStatementBuilder -> XMLStatementBuilder1: 3、虚拟processStatementNodes()：解析sql语句
+XMLStatementBuilder1 -> XMLLanguageDriver: createSqlSource()：
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+XMLLanguageDriver -> XMLScriptBuilder: parseScriptNode()
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+XMLScriptBuilder -> XMLScriptBuilder1: parseDynamicTags()：解析sql语句片段
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+XMLScriptBuilder1 -> XXXSqlSource: new：实例化
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+XXXSqlSource -> SqlSourceBuilder:parse()：拼接完整的sql，并且解析其中的参数信息
+SqlSourceBuilder -> XXXSqlSource: StaticSqlSource
+XXXSqlSource -> XMLScriptBuilder1: XXXSqlSource
+XMLScriptBuilder1 -> XMLScriptBuilder:done
+XMLScriptBuilder -> XMLLanguageDriver:XXXSqlSource
+XMLLanguageDriver -> XMLStatementBuilder1:XXXSqlSource
+XMLStatementBuilder1 -> XMLStatementBuilder: 创建MappedStatement对象
+XMLStatementBuilder -> XMLMapperBuilder1:done
+XMLMapperBuilder1 -> XMLMapperBuilder:done
+XMLMapperBuilder -> XMLConfigBuilder1:done
+XMLConfigBuilder1 -> XMLConfigBuilder:done
+
+@enduml

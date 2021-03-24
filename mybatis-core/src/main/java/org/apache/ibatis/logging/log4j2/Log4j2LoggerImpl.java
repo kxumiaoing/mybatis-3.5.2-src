@@ -23,6 +23,9 @@ import org.apache.logging.log4j.MarkerManager;
 
 /**
  * @author Eduardo Macarron
+ *
+ * 所有操作委托给log4j2的Logger对象
+ *
  */
 public class Log4j2LoggerImpl implements Log {
 

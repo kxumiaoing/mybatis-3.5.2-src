@@ -47,8 +47,10 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
   private  <T> T instantiateClass(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
     try {
       Constructor<T> constructor;
+      /**
+       * 使用无参构造器够构造对象
+       */
       if (constructorArgTypes == null || constructorArgs == null) {
-          //使用无参构造器够构造对象
         constructor = type.getDeclaredConstructor();
         try {
           return constructor.newInstance();
@@ -61,7 +63,10 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
           }
         }
       }
-      //根据有参构造器构造对象
+
+      /**
+       * 根据有参构造器构造对象
+       */
       constructor = type.getDeclaredConstructor(constructorArgTypes.toArray(new Class[constructorArgTypes.size()]));
       try {
         return constructor.newInstance(constructorArgs.toArray(new Object[constructorArgs.size()]));
@@ -85,7 +90,9 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
   protected Class<?> resolveInterface(Class<?> type) {
     Class<?> classToCreate;
 
-    //如果类型是常见的集合接口，选择它们常见的子类作为创建对象的类型
+    /**
+     * 如果类型是常见的集合接口，选择它们常见的子类作为创建对象的类型
+     */
     if (type == List.class || type == Collection.class || type == Iterable.class) {
       classToCreate = ArrayList.class;
     } else if (type == Map.class) {

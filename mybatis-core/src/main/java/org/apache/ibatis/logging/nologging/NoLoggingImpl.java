@@ -19,6 +19,9 @@ import org.apache.ibatis.logging.Log;
 
 /**
  * @author Clinton Begin
+ *
+ * 什么都不做
+ *
  */
 public class NoLoggingImpl implements Log {
 

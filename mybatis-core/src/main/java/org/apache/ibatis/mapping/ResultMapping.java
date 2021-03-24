@@ -15,15 +15,15 @@
  */
 package org.apache.ibatis.mapping;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Clinton Begin
@@ -31,19 +31,61 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 public class ResultMapping {
 
   private Configuration configuration;
+  /**
+   * 属性名称
+   */
   private String property;
+  /**
+   * 对应数据库列名称
+   */
   private String column;
+  /**
+   * 属性的类型
+   */
   private Class<?> javaType;
+  /**
+   * 对应数据库列的jdbc类型
+   */
   private JdbcType jdbcType;
+  /**
+   * typeHandler属性指定的类型处理器
+   */
   private TypeHandler<?> typeHandler;
+  /**
+   * 指向另外的ResultMap的id
+   */
   private String nestedResultMapId;
+  /**
+   * 指向另外的select的id
+   */
   private String nestedQueryId;
+  /**
+   * 不能为空的列
+   */
   private Set<String> notNullColumns;
+  /**
+   * 数据库列名称前缀
+   */
   private String columnPrefix;
+  /**
+   * ResultMapping对应标签的标示
+   */
   private List<ResultFlag> flags;
+  /**
+   * 为select标签或多数据集传递多个参数的“多列”
+   */
   private List<ResultMapping> composites;
+  /**
+   * ResultMapping对应标签对应的数据集
+   */
   private String resultSet;
+  /**
+   * 外键
+   */
   private String foreignColumn;
+  /**
+   * 是否懒加载
+   */
   private boolean lazy;
 
   ResultMapping() {
@@ -169,6 +211,9 @@ public class ResultMapping {
       }
     }
 
+    /**
+     * 根据javaType和jdbcType获取TypeHandler对象
+     */
     private void resolveTypeHandler() {
       if (resultMapping.typeHandler == null && resultMapping.javaType != null) {
         Configuration configuration = resultMapping.configuration;

@@ -54,15 +54,16 @@ public class TrimSqlNode implements SqlNode {
   @Override
   public boolean apply(DynamicContext context) {
     /**
-     * FilteredDynamicContext继承DynamicContext，主要是处理前缀，后缀问题
+     * FilteredDynamicContext继承DynamicContext
+     * 缓存标签下所有的sql片段，然后处理前/后缀，并且再将最终的结果缓存到父类中
      */
     FilteredDynamicContext filteredDynamicContext = new FilteredDynamicContext(context);
     /**
-     * 解析sql片段中的表达式（集合迭代）
+     * 各个sql片段解析
      */
     boolean result = contents.apply(filteredDynamicContext);
     /**
-     * 拼接trim标签对应的sql片段（大段）
+     * 将多个小段sql拼接成大段sql
      */
     filteredDynamicContext.applyAll();
     return result;
@@ -131,7 +132,7 @@ public class TrimSqlNode implements SqlNode {
     @Override
     public void appendSql(String sql) {
       /**
-       * 已经不是DynamicContext的sqlBuilder了
+       * 所有sql片段缓存到StringBuffer中，而不是直接缓存到DynamicContext的sqlBuilder中
        */
       sqlBuffer.append(sql);
     }

@@ -15,17 +15,22 @@
  */
 package org.apache.ibatis.mapping;
 
+import org.apache.ibatis.session.Configuration;
+
 import java.util.Collections;
 import java.util.Map;
-
-import org.apache.ibatis.session.Configuration;
 
 /**
  * @author Clinton Begin
  */
 public class Discriminator {
-
+  /**
+   * Discriminator对应的ResultMapping信息
+   */
   private ResultMapping resultMapping;
+  /**
+   * Discriminator的映射字典
+   */
   private Map<String, String> discriminatorMap;
 
   Discriminator() {

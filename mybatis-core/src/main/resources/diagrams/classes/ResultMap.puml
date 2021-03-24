@@ -1,0 +1,18 @@
+@startuml
+
+class ResultMap
+class ResultMapping
+
+ResultMap : <b>String</b> <i>id</i>
+ResultMap : <b>Class<?></b> <i> type</i>
+ResultMap : <b>List<ResultMapping></b> <i> resultMappings</i>
+
+ResultMapping : <b>String</b> <i> property</i>
+ResultMapping : <b>String</b> <i> column</i>
+ResultMapping : <b>Class<?></b> <i> javaType</i>
+ResultMapping : <b>JdbcType</b> <i> jdbcType</i>
+ResultMapping : <b>TypeHandler<?></b> <i> typeHandler</i>
+ResultMapping : <b>String</b> <i> nestedResultMapId</i>
+ResultMapping : <b>String</b> <i> nestedQueryId</i>
+
+@enduml

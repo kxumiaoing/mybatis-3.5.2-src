@@ -1,0 +1,7 @@
+@startuml
+class OgnlContext
+
+OgnlContext : <b>Object</b> <i>_root</i>
+OgnlContext : <b>Map</b> <i>_values</i>
+
+@enduml

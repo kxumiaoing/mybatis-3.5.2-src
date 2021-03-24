@@ -27,6 +27,9 @@ import org.apache.logging.log4j.spi.ExtendedLoggerWrapper;
 
 /**
  * @author Eduardo Macarron
+ *
+ * 委托给log4j2的ExtendedLoggerWrapper对象
+ *
  */
 public class Log4j2AbstractLoggerImpl implements Log {
 

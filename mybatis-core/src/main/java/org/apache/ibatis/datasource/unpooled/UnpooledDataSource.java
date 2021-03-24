@@ -15,22 +15,17 @@
  */
 package org.apache.ibatis.datasource.unpooled;
 
+import org.apache.ibatis.io.Resources;
+
+import javax.sql.DataSource;
 import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.DriverPropertyInfo;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
-
-import javax.sql.DataSource;
-
-import org.apache.ibatis.io.Resources;
 
 /**
  * @author Clinton Begin
@@ -52,6 +47,9 @@ public class UnpooledDataSource implements DataSource {
   private Integer defaultNetworkTimeout;
 
   static {
+    /**
+     * 所有的驱动
+     */
     Enumeration<Driver> drivers = DriverManager.getDrivers();
     while (drivers.hasMoreElements()) {
       Driver driver = drivers.nextElement();
@@ -216,9 +214,18 @@ public class UnpooledDataSource implements DataSource {
     return doGetConnection(props);
   }
 
+  /**
+   * 获取连接，实际的获取动作依赖Driver
+   */
   private Connection doGetConnection(Properties properties) throws SQLException {
+    /**
+     * 检查Driver是否初始化
+     */
     initializeDriver();
     Connection connection = DriverManager.getConnection(url, properties);
+    /**
+     * 配置连接
+     */
     configureConnection(connection);
     return connection;
   }
@@ -245,11 +252,24 @@ public class UnpooledDataSource implements DataSource {
 
   private void configureConnection(Connection conn) throws SQLException {
     if (defaultNetworkTimeout != null) {
+      /**
+       * 为Connection对象以及通过Connection对象获取的其他对象设置一个大范围的timeout时间
+       * 超过了这个时间，Connection对象被标记成不可用，除了少数几个方法之外，其他方法的调用均报SQLException
+       *
+       * 这个监控事件是由管理员线程或者给此方法提供的线程来执行
+       *
+       */
       conn.setNetworkTimeout(Executors.newSingleThreadExecutor(), defaultNetworkTimeout);
     }
+    /**
+     * 设置自动提交标示
+     */
     if (autoCommit != null && autoCommit != conn.getAutoCommit()) {
       conn.setAutoCommit(autoCommit);
     }
+    /**
+     * 设置事务的隔离级别
+     */
     if (defaultTransactionIsolationLevel != null) {
       conn.setTransactionIsolation(defaultTransactionIsolationLevel);
     }

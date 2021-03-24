@@ -15,16 +15,19 @@
  */
 package org.apache.ibatis.datasource.pooled;
 
+import org.apache.ibatis.reflection.ExceptionUtil;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import org.apache.ibatis.reflection.ExceptionUtil;
-
 /**
  * @author Clinton Begin
+ *
+ * 动态代理真实的Connection对象
+ *
  */
 class PooledConnection implements InvocationHandler {
 
@@ -232,6 +235,9 @@ class PooledConnection implements InvocationHandler {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     String methodName = method.getName();
+    /**
+     * 关闭连接,等于放回线程池
+     */
     if (CLOSE.hashCode() == methodName.hashCode() && CLOSE.equals(methodName)) {
       dataSource.pushConnection(this);
       return null;
@@ -240,6 +246,9 @@ class PooledConnection implements InvocationHandler {
       if (!Object.class.equals(method.getDeclaringClass())) {
         // issue #579 toString() should never fail
         // throw an SQLException instead of a Runtime
+        /**
+         * 操作Connection对象接口时，检测有效标示（快速失败）
+         */
         checkConnection();
       }
       return method.invoke(realConnection, args);

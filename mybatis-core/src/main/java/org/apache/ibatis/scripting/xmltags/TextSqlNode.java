@@ -28,7 +28,13 @@ import java.util.regex.Pattern;
  * sql语句段（不完整的）容器
  */
 public class TextSqlNode implements SqlNode {
+  /**
+   * sql片段
+   */
   private final String text;
+  /**
+   * 注入值验证模式
+   */
   private final Pattern injectionFilter;
 
   public TextSqlNode(String text) {
@@ -41,15 +47,13 @@ public class TextSqlNode implements SqlNode {
   }
 
   /**
-   * 如果sql片段中包含“${”和“}”，那么这个sql就是动态sql
-   * 因为“${”和“}”可以改变sql的“本意”，比如动态指定查找哪张表
-   * “#{”和“}”不是动态脚本
+   * sql语句中包含“${”和“}”就是动态sql
    */
   public boolean isDynamic() {
     DynamicCheckerTokenParser checker = new DynamicCheckerTokenParser();
     GenericTokenParser parser = createParser(checker);
     /**
-     * 通过解析来检测是否是动态标签
+     * 需要处理变量，就表明包含“${”和“}”
      */
     parser.parse(text);
     return checker.isDynamic();
@@ -58,6 +62,9 @@ public class TextSqlNode implements SqlNode {
   @Override
   public boolean apply(DynamicContext context) {
     GenericTokenParser parser = createParser(new BindingTokenParser(context, injectionFilter));
+    /**
+     * 使用OGNL来进行变量替换
+     */
     context.appendSql(parser.parse(text));
     return true;
   }
@@ -66,9 +73,15 @@ public class TextSqlNode implements SqlNode {
     return new GenericTokenParser("${", "}", handler);
   }
 
+  /**
+   * 通过OGNL（上下文是ContextMap）来求取变量的值
+   */
   private static class BindingTokenParser implements TokenHandler {
 
     private DynamicContext context;
+    /**
+     * 注入值验证模式
+     */
     private Pattern injectionFilter;
 
     public BindingTokenParser(DynamicContext context, Pattern injectionFilter) {
@@ -79,11 +92,11 @@ public class TextSqlNode implements SqlNode {
     @Override
     public String handleToken(String content) {
       /**
-       * 获取运行时入参
+       * 原始参数
        */
       Object parameter = context.getBindings().get("_parameter");
       /**
-       * 设置上下文中value键对应的值
+       * 简单参数以及null，设置到以value为key的值中
        */
       if (parameter == null) {
         context.getBindings().put("value", null);
@@ -94,7 +107,13 @@ public class TextSqlNode implements SqlNode {
        * 通过OGNL求值
        */
       Object value = OgnlCache.getValue(content, context.getBindings());
+      /**
+       * 一定是字符串
+       */
       String srtValue = value == null ? "" : String.valueOf(value); // issue #274 return "" instead of "null"
+      /**
+       * 验证注入值是否有安全问题
+       */
       checkInjection(srtValue);
       return srtValue;
     }
@@ -106,9 +125,6 @@ public class TextSqlNode implements SqlNode {
     }
   }
 
-  /**
-   * 什么都不干的子类，进行是构造符合规范的对象
-   */
   private static class DynamicCheckerTokenParser implements TokenHandler {
 
     private boolean isDynamic;

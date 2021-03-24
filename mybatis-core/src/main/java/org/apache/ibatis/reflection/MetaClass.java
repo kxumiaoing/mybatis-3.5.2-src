@@ -31,11 +31,19 @@ import java.util.Collection;
  *
  * 类型的元数据类
  *
- * 所有操作委托给类型的反射器以及反射器工厂
+ * MetaClass -> Reflector
+ *
+ * 工厂模式
+ *
  */
 public class MetaClass {
-
+  /**
+   * 发射器工厂
+   */
   private final ReflectorFactory reflectorFactory;
+  /**
+   * 反射器
+   */
   private final Reflector reflector;
 
   private MetaClass(Class<?> type, ReflectorFactory reflectorFactory) {
@@ -47,13 +55,17 @@ public class MetaClass {
     return new MetaClass(type, reflectorFactory);
   }
 
+  /**
+   * 属性的MetaClass
+   */
   public MetaClass metaClassForProperty(String name) {
-    //通过反射器获取属性的getter类型
     Class<?> propType = reflector.getGetterType(name);
-    //通过类型来构造反射器
     return MetaClass.forClass(propType, reflectorFactory);
   }
 
+  /**
+   * 根据name构建正确的级联属性字符串，但是不考虑[index]部分
+   */
   public String findProperty(String name) {
     StringBuilder prop = buildProperty(name, new StringBuilder());
     return prop.length() > 0 ? prop.toString() : null;
@@ -66,31 +78,45 @@ public class MetaClass {
     return findProperty(name);
   }
 
-
+  /**
+   * 可读属性的名字
+   */
   public String[] getGetterNames() {
-    //返回所有属性的名字
     return reflector.getGetablePropertyNames();
   }
 
+  /**
+   * 可写属性的名字
+   */
   public String[] getSetterNames() {
-    //返回所有可设置属性的名字
     return reflector.getSetablePropertyNames();
   }
 
+  /**
+   * setter的参数类型
+   */
   public Class<?> getSetterType(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
-    //级联属性，通过属性的元数据类继续往下找
+    /**
+     * 通过引用链（名字级联）往下找
+     */
     if (prop.hasNext()) {
       MetaClass metaProp = metaClassForProperty(prop.getName());
       return metaProp.getSetterType(prop.getChildren());
     } else {
-      //通过反射器找
       return reflector.getSetterType(prop.getName());
     }
   }
 
+  /**
+   * getter的参数类型
+   * 要考虑从数组属性中按照数字index来获取对象/对象类型
+   */
   public Class<?> getGetterType(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
+    /**
+     * 通过引用链（名字级联）往下找
+     */
     if (prop.hasNext()) {
       MetaClass metaProp = metaClassForProperty(prop);
       return metaProp.getGetterType(prop.getChildren());
@@ -104,12 +130,21 @@ public class MetaClass {
     return MetaClass.forClass(propType, reflectorFactory);
   }
 
+  /**
+   * 获取集合内对象的类型
+   */
   private Class<?> getGetterType(PropertyTokenizer prop) {
     Class<?> type = reflector.getGetterType(prop.getName());
+    /**
+     * 考虑[index]部分
+     */
     if (prop.getIndex() != null && Collection.class.isAssignableFrom(type)) {
       Type returnType = getGenericGetterType(prop.getName());
       if (returnType instanceof ParameterizedType) {
         Type[] actualTypeArguments = ((ParameterizedType) returnType).getActualTypeArguments();
+        /**
+         * 只有一个参数类型
+         */
         if (actualTypeArguments != null && actualTypeArguments.length == 1) {
           returnType = actualTypeArguments[0];
           if (returnType instanceof Class) {
@@ -127,11 +162,17 @@ public class MetaClass {
     try {
       Invoker invoker = reflector.getGetInvoker(propertyName);
       if (invoker instanceof MethodInvoker) {
+        /**
+         * 获取MethodInvoker的method属性
+         */
         Field _method = MethodInvoker.class.getDeclaredField("method");
         _method.setAccessible(true);
         Method method = (Method) _method.get(invoker);
         return TypeParameterResolver.resolveReturnType(method, reflector.getType());
       } else if (invoker instanceof GetFieldInvoker) {
+        /**
+         * 获取GetFieldInvoker的field属性
+         */
         Field _field = GetFieldInvoker.class.getDeclaredField("field");
         _field.setAccessible(true);
         Field field = (Field) _field.get(invoker);
@@ -178,6 +219,9 @@ public class MetaClass {
     return reflector.getSetInvoker(name);
   }
 
+  /**
+   * 构建级联属性字符串
+   */
   private StringBuilder buildProperty(String name, StringBuilder builder) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {

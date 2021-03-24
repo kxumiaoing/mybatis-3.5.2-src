@@ -47,9 +47,13 @@ public class MapWrapper extends BaseWrapper {
   public Object get(PropertyTokenizer prop) {
     //如果有索引
     if (prop.getIndex() != null) {
-        //属性对象或者“当前”对象 ()
+      /**
+       * 获取属性对象
+       */
       Object collection = resolveCollection(prop, map);
-      //按照索引获取值
+      /**
+       * 按照索引获取属性对象的属性值
+       */
       return getCollectionValue(prop, collection);
     } else {
       //如果没有索引，属性名字就是key

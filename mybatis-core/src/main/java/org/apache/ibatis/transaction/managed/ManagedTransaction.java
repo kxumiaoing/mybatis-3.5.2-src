@@ -15,14 +15,14 @@
  */
 package org.apache.ibatis.transaction.managed;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import javax.sql.DataSource;
-
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.session.TransactionIsolationLevel;
 import org.apache.ibatis.transaction.Transaction;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * {@link Transaction} that lets the container manage the full lifecycle of the transaction.
@@ -56,17 +56,26 @@ public class ManagedTransaction implements Transaction {
 
   @Override
   public Connection getConnection() throws SQLException {
+    /**
+     * 没有连接就是使用DataSource打开连接（看具体的构造方法）
+     */
     if (this.connection == null) {
       openConnection();
     }
     return this.connection;
   }
 
+  /**
+   * 不管事务的提交，交给外部来控制
+   */
   @Override
   public void commit() throws SQLException {
     // Does nothing
   }
 
+  /**
+   * 不管事务的回滚，交给外部来控制
+   */
   @Override
   public void rollback() throws SQLException {
     // Does nothing
@@ -87,6 +96,9 @@ public class ManagedTransaction implements Transaction {
       log.debug("Opening JDBC Connection");
     }
     this.connection = this.dataSource.getConnection();
+    /**
+     * 设置好事务的隔离级别
+     */
     if (this.level != null) {
       this.connection.setTransactionIsolation(this.level.getLevel());
     }

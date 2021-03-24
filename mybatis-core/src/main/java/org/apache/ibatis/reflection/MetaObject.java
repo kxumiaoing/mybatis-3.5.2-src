@@ -27,6 +27,13 @@ import java.util.Map;
  * @author Clinton Begin
  * 对象的源元数据对象
  *
+ * MetaObject -> ObjectWrapper -> MetaClass -> Reflector
+ *
+ * ##################################
+ * MetaObject和ObjectWrapper互相引用
+ * ##################################
+ *
+ *
  * 其实就是包含原始对象、对象的包裹器以及对象的反射器
  */
 public class MetaObject {
@@ -111,13 +118,18 @@ public class MetaObject {
     return objectWrapper.hasGetter(name);
   }
 
+
   public Object getValue(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
+
     if (prop.hasNext()) {
       MetaObject metaValue = metaObjectForProperty(prop.getIndexedName());
       if (metaValue == SystemMetaObject.NULL_META_OBJECT) {
         return null;
       } else {
+        /**
+         * 递归获取属性的值
+         */
         return metaValue.getValue(prop.getChildren());
       }
     } else {

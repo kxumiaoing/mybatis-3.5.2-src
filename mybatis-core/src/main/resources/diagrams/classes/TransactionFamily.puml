@@ -1,0 +1,35 @@
+@startuml
+
+note top of Transaction
+    管理数据库事务
+end note
+
+class JdbcTransaction implements Transaction
+
+note top of JdbcTransaction
+    控制事务（当然是在手动提交的前提下）
+end note
+
+class ManagedTransaction implements Transaction
+
+note top of ManagedTransaction
+    不控制事务，一切都交给外部事务管理器管理
+end note
+
+note top of TransactionFactory
+    数据库事务工厂
+end note
+
+class JdbcTransactionFactory implements TransactionFactory
+
+note top of JdbcTransactionFactory
+    jdbc事务工厂
+end note
+
+class ManagedTransactionFactory implements TransactionFactory
+
+note top of ManagedTransactionFactory
+    外部事务管理工厂
+end note
+
+@enduml

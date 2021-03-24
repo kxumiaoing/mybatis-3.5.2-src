@@ -60,7 +60,7 @@ import java.util.Set;
 /**
  *  加载类工具
  *
- *  可以按照条件加载类
+ *  按照包名扫描包下所有的类，并且按照条件加载类
  */
 public class ResolverUtil<T> {
   /*
@@ -236,7 +236,7 @@ public class ResolverUtil<T> {
    * 过滤
    */
   public ResolverUtil<T> find(Test test, String packageName) {
-    //获取包对应的文件路径
+    //获取包对应的文件路径（使用/替换.）
     String path = getPackagePath(packageName);
 
     try {
