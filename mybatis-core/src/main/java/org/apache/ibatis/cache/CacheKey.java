@@ -15,15 +15,18 @@
  */
 package org.apache.ibatis.cache;
 
+import org.apache.ibatis.reflection.ArrayUtil;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 
-import org.apache.ibatis.reflection.ArrayUtil;
-
 /**
  * @author Clinton Begin
+ *
+ * 依赖元素的hashCode()和equals()方法
+ *
  */
 public class CacheKey implements Cloneable, Serializable {
 
@@ -34,10 +37,25 @@ public class CacheKey implements Cloneable, Serializable {
   private static final int DEFAULT_MULTIPLYER = 37;
   private static final int DEFAULT_HASHCODE = 17;
 
+  /**
+   * 计算hash值的乘积因子
+   */
   private final int multiplier;
+  /**
+   * hash值
+   */
   private int hashcode;
+  /**
+   * 元素的hash值的和
+   */
   private long checksum;
+  /**
+   * 元素的个数
+   */
   private int count;
+  /**
+   * 影响CacheKey的元素
+   */
   // 8/21/2017 - Sonarlint flags this as needing to be marked transient.  While true if content is not serializable, this is not always true and thus should not be marked transient.
   private List<Object> updateList;
 
@@ -99,6 +117,9 @@ public class CacheKey implements Cloneable, Serializable {
     for (int i = 0; i < updateList.size(); i++) {
       Object thisObject = updateList.get(i);
       Object thatObject = cacheKey.updateList.get(i);
+      /**
+       * 依赖ArrayUtil.equals()方法
+       */
       if (!ArrayUtil.equals(thisObject, thatObject)) {
         return false;
       }
@@ -116,6 +137,9 @@ public class CacheKey implements Cloneable, Serializable {
     StringJoiner returnValue = new StringJoiner(":");
     returnValue.add(String.valueOf(hashcode));
     returnValue.add(String.valueOf(checksum));
+    /**
+     * 依赖ArrayUtil.toString()方法
+     */
     updateList.stream().map(ArrayUtil::toString).forEach(returnValue::add);
     return returnValue.toString();
   }

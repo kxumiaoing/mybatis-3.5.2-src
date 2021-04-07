@@ -15,13 +15,13 @@
  */
 package org.apache.ibatis.session;
 
+import org.apache.ibatis.cursor.Cursor;
+import org.apache.ibatis.executor.BatchResult;
+
 import java.io.Closeable;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.ibatis.cursor.Cursor;
-import org.apache.ibatis.executor.BatchResult;
 
 /**
  * The primary Java interface for working with MyBatis.
@@ -31,6 +31,7 @@ import org.apache.ibatis.executor.BatchResult;
  */
 public interface SqlSession extends Closeable {
 
+  //################################################################
   /**
    * Retrieve a single row mapped from the statement key.
    * @param <T> the returned object type
@@ -48,6 +49,7 @@ public interface SqlSession extends Closeable {
    */
   <T> T selectOne(String statement, Object parameter);
 
+  //################################################################
   /**
    * Retrieve a list of mapped objects from the statement key and parameter.
    * @param <E> the returned list element type
@@ -76,6 +78,7 @@ public interface SqlSession extends Closeable {
    */
   <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds);
 
+  //################################################################
   /**
    * The selectMap is a special case in that it is designed to convert a list
    * of results into a Map based on one of the properties in the resulting
@@ -116,6 +119,7 @@ public interface SqlSession extends Closeable {
    */
   <K, V> Map<K, V> selectMap(String statement, Object parameter, String mapKey, RowBounds rowBounds);
 
+  //################################################################
   /**
    * A Cursor offers the same results as a List, except it fetches data lazily using an Iterator.
    * @param <T> the returned cursor element type.
@@ -143,6 +147,7 @@ public interface SqlSession extends Closeable {
    */
   <T> Cursor<T> selectCursor(String statement, Object parameter, RowBounds rowBounds);
 
+  //################################################################
   /**
    * Retrieve a single row mapped from the statement key and parameter
    * using a {@code ResultHandler}.
@@ -169,6 +174,7 @@ public interface SqlSession extends Closeable {
    */
   void select(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler);
 
+  //################################################################
   /**
    * Execute an insert statement.
    * @param statement Unique identifier matching the statement to execute.
@@ -186,6 +192,7 @@ public interface SqlSession extends Closeable {
    */
   int insert(String statement, Object parameter);
 
+  //################################################################
   /**
    * Execute an update statement. The number of rows affected will be returned.
    * @param statement Unique identifier matching the statement to execute.
@@ -201,6 +208,7 @@ public interface SqlSession extends Closeable {
    */
   int update(String statement, Object parameter);
 
+  //################################################################
   /**
    * Execute a delete statement. The number of rows affected will be returned.
    * @param statement Unique identifier matching the statement to execute.
@@ -216,6 +224,7 @@ public interface SqlSession extends Closeable {
    */
   int delete(String statement, Object parameter);
 
+  //################################################################
   /**
    * Flushes batch statements and commits database connection.
    * Note that database connection will not be committed if no updates/deletes/inserts were called.
@@ -229,6 +238,7 @@ public interface SqlSession extends Closeable {
    */
   void commit(boolean force);
 
+  //################################################################
   /**
    * Discards pending batch statements and rolls database connection back.
    * Note that database connection will not be rolled back if no updates/deletes/inserts were called.
@@ -243,6 +253,7 @@ public interface SqlSession extends Closeable {
    */
   void rollback(boolean force);
 
+  //################################################################
   /**
    * Flushes batch statements.
    * @return BatchResult list of updated records
@@ -250,23 +261,27 @@ public interface SqlSession extends Closeable {
    */
   List<BatchResult> flushStatements();
 
+  //################################################################
   /**
    * Closes the session.
    */
   @Override
   void close();
 
+  //################################################################
   /**
    * Clears local session cache.
    */
   void clearCache();
 
+  //################################################################
   /**
    * Retrieves current configuration.
    * @return Configuration
    */
   Configuration getConfiguration();
 
+  //################################################################
   /**
    * Retrieves a mapper.
    * @param <T> the mapper type
@@ -275,6 +290,7 @@ public interface SqlSession extends Closeable {
    */
   <T> T getMapper(Class<T> type);
 
+  //################################################################
   /**
    * Retrieves inner database connection.
    * @return Connection

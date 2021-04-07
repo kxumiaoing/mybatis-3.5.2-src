@@ -1,31 +1,46 @@
 @startuml
 
+Transaction : +{abstract} Connection getConnection()
+Transaction : +{abstract} void commit()
+Transaction : +{abstract} void rollback()
+Transaction : +{abstract} void close()
+Transaction : +{abstract} Integer getTimeout()
+
 note top of Transaction
     管理数据库事务
 end note
 
+''''''''''''''''''''''''''''''''''''''''''''''''''
 class JdbcTransaction implements Transaction
 
 note top of JdbcTransaction
     控制事务（当然是在手动提交的前提下）
 end note
 
+''''''''''''''''''''''''''''''''''''''''''''''''''
 class ManagedTransaction implements Transaction
 
 note top of ManagedTransaction
     不控制事务，一切都交给外部事务管理器管理
 end note
 
+''''''''''''''''''''''''''''''''''''''''''''''''''
+TransactionFactory : +void setProperties(Properties props) //接受外部传入的属性
+TransactionFactory : +{abstract} Transaction newTransaction(Connection conn) //使用外部传入的Connection对象，事务隔离级别和自动提交标示完全依赖这个Connection对象
+TransactionFactory : +{abstract} Transaction newTransaction(DataSource dataSource, TransactionIsolationLevel level, boolean autoCommit) //从DataSource中获得Connection对象，可以设置事务隔离级别和自动提交标示
+
 note top of TransactionFactory
     数据库事务工厂
 end note
 
+''''''''''''''''''''''''''''''''''''''''''''''''''
 class JdbcTransactionFactory implements TransactionFactory
 
 note top of JdbcTransactionFactory
     jdbc事务工厂
 end note
 
+''''''''''''''''''''''''''''''''''''''''''''''''''
 class ManagedTransactionFactory implements TransactionFactory
 
 note top of ManagedTransactionFactory

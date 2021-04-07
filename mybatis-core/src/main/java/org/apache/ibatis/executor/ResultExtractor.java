@@ -37,12 +37,21 @@ public class ResultExtractor {
   public Object extractObjectFromList(List<Object> list, Class<?> targetType) {
     Object value = null;
     if (targetType != null && targetType.isAssignableFrom(list.getClass())) {
+      /**
+       * 如果目标类型是List，默认就是入参
+       */
       value = list;
     } else if (targetType != null && objectFactory.isCollection(targetType)) {
+      /**
+       * 如果目标类型是Collection集合，使用ArrayList拷贝一份入参
+       */
       value = objectFactory.create(targetType);
       MetaObject metaObject = configuration.newMetaObject(value);
       metaObject.addAll(list);
     } else if (targetType != null && targetType.isArray()) {
+      /**
+       * 如果目标类型是数组，创建数组并且拷贝一份
+       */
       Class<?> arrayComponentType = targetType.getComponentType();
       Object array = Array.newInstance(arrayComponentType, list.size());
       if (arrayComponentType.isPrimitive()) {
@@ -55,8 +64,14 @@ public class ResultExtractor {
       }
     } else {
       if (list != null && list.size() > 1) {
+        /**
+         * 如果不是集合类型，并且入参个数大于1，报错
+         */
         throw new ExecutorException("Statement returned more than one row, where no more than one was expected.");
       } else if (list != null && list.size() == 1) {
+        /**
+         * 如果不是集合类型，并且入参只有一个，那么就取这个元素
+         */
         value = list.get(0);
       }
     }

@@ -23,7 +23,7 @@ XMLMapperBuilder -> XMLMapperBuilder1:3、resultMapElements()：解析<resultMap
 XMLMapperBuilder -> XMLMapperBuilder1:4、buildStatementFromContext()：解析<select>、<update>、<delete>和<insert>标签
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 XMLMapperBuilder1 -> XMLStatementBuilder:parseStatementNode()：解析sql语句标签
-XMLStatementBuilder -> XMLIncludeTransformer: 1、applyIncludes()：解析<selectKey>标签
+XMLStatementBuilder -> XMLIncludeTransformer: 1、applyIncludes()：使用<sql>标签内容替换<include>标签
 XMLStatementBuilder -> XMLStatementBuilder1: 2、processSelectKeyNodes()：解析<selectKey>标签
 XMLStatementBuilder -> XMLStatementBuilder1: 3、虚拟processStatementNodes()：解析sql语句
 XMLStatementBuilder1 -> XMLLanguageDriver: createSqlSource()：

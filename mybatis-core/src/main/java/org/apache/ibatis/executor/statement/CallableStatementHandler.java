@@ -15,25 +15,17 @@
  */
 package org.apache.ibatis.executor.statement;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.List;
-
 import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.ExecutorException;
 import org.apache.ibatis.executor.keygen.KeyGenerator;
-import org.apache.ibatis.mapping.BoundSql;
-import org.apache.ibatis.mapping.MappedStatement;
-import org.apache.ibatis.mapping.ParameterMapping;
-import org.apache.ibatis.mapping.ParameterMode;
-import org.apache.ibatis.mapping.ResultSetType;
+import org.apache.ibatis.mapping.*;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.type.JdbcType;
+
+import java.sql.*;
+import java.util.List;
 
 /**
  * @author Clinton Begin
@@ -44,6 +36,9 @@ public class CallableStatementHandler extends BaseStatementHandler {
     super(executor, mappedStatement, parameter, rowBounds, resultHandler, boundSql);
   }
 
+  /**
+   * 执行sql语句，使用ResultHandler处理输出参数
+   */
   @Override
   public int update(Statement statement) throws SQLException {
     CallableStatement cs = (CallableStatement) statement;
@@ -52,6 +47,9 @@ public class CallableStatementHandler extends BaseStatementHandler {
     Object parameterObject = boundSql.getParameterObject();
     KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
     keyGenerator.processAfter(executor, mappedStatement, cs, parameterObject);
+    /**
+     * 处理输出参数
+     */
     resultSetHandler.handleOutputParameters(cs);
     return rows;
   }
@@ -62,24 +60,45 @@ public class CallableStatementHandler extends BaseStatementHandler {
     cs.addBatch();
   }
 
+  /**
+   * 执行sql语句，使用ResultHandler映射结果，还要处理输出参数
+   */
   @Override
   public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
     CallableStatement cs = (CallableStatement) statement;
     cs.execute();
+    /**
+     * 处理结果集
+     */
     List<E> resultList = resultSetHandler.handleResultSets(cs);
+    /**
+     * 处理输出参数
+     */
     resultSetHandler.handleOutputParameters(cs);
     return resultList;
   }
 
+  /**
+   * 执行sql语句，使用ResultHandler映射结果，还要处理输出参数
+   */
   @Override
   public <E> Cursor<E> queryCursor(Statement statement) throws SQLException {
     CallableStatement cs = (CallableStatement) statement;
     cs.execute();
+    /**
+     * 处理结果集
+     */
     Cursor<E> resultList = resultSetHandler.handleCursorResultSets(cs);
+    /**
+     * 处理输出参数
+     */
     resultSetHandler.handleOutputParameters(cs);
     return resultList;
   }
 
+  /**
+   * 实例化CallableStatement对象
+   */
   @Override
   protected Statement instantiateStatement(Connection connection) throws SQLException {
     String sql = boundSql.getSql();
@@ -90,17 +109,27 @@ public class CallableStatementHandler extends BaseStatementHandler {
     }
   }
 
+  /**
+   * 注册登记输出参数
+   * 使用ParameterHandler设置参数
+   */
   @Override
   public void parameterize(Statement statement) throws SQLException {
     registerOutputParameters((CallableStatement) statement);
     parameterHandler.setParameters((CallableStatement) statement);
   }
 
+  /**
+   * 注册登记输出参数
+   */
   private void registerOutputParameters(CallableStatement cs) throws SQLException {
     List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
     for (int i = 0, n = parameterMappings.size(); i < n; i++) {
       ParameterMapping parameterMapping = parameterMappings.get(i);
       if (parameterMapping.getMode() == ParameterMode.OUT || parameterMapping.getMode() == ParameterMode.INOUT) {
+        /**
+         * 输出参数必须有jdbcType
+         */
         if (null == parameterMapping.getJdbcType()) {
           throw new ExecutorException("The JDBC Type must be specified for output parameter.  Parameter: " + parameterMapping.getProperty());
         } else {

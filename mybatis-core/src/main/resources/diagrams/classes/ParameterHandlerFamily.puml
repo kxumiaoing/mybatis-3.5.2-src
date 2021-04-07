@@ -1,0 +1,27 @@
+@startuml
+
+interface ParameterHandler {
+    ..获取入参..
+    + {abstract} Object getParameterObject()
+    ..为Statement对象设置参数..
+    + {abstract} void setParameters(PreparedStatement ps)
+}
+
+note top of ParameterHandler
+    为Statement对象设置参数
+end note
+
+
+class DefaultParameterHandler implements ParameterHandler {
+    - <b>TypeHandlerRegistry</b> <i>typeHandlerRegistry</i>
+    - <b>MappedStatement</b> <i>mappedStatement</i>
+    - <b>Object</b> <i>parameterObject</i>
+    - <b>BoundSql</b> <i>boundSql</i>
+    - <b>Configuration</b> <i>configuration</i>
+}
+
+note bottom of DefaultParameterHandler
+    从入参中获取属性值，并且使用TypeHandler设置参数
+end note
+
+@enduml

@@ -4,12 +4,14 @@ note top of Cache
     缓存
 end note
 
+'''''''''''''''''''''''''''''''''''''
 class PerpetualCache implements Cache
 
 note bottom of PerpetualCache
     Map集合作为缓存
 end note
 
+'''''''''''''''''''''''''''''''''''''
 class FifoCache implements Cache
 FifoCache o-- Cache: 被装饰
 FifoCache : <b>Cache</b> <i>delegate</i>
@@ -18,6 +20,7 @@ note bottom of FifoCache
     fifo缓存
 end note
 
+'''''''''''''''''''''''''''''''''''''
 class LruCache implements Cache
 LruCache o-- Cache: 被装饰
 LruCache : <b>Cache</b> <i>delegate</i>
@@ -26,6 +29,7 @@ note bottom of LruCache
     lru缓存
 end note
 
+'''''''''''''''''''''''''''''''''''''
 class SoftCache implements Cache
 SoftCache o-- Cache: 被装饰
 SoftCache : <b>Cache</b> <i>delegate</i>
@@ -34,6 +38,7 @@ note bottom of SoftCache
     软连接（垃圾回收）缓存
 end note
 
+'''''''''''''''''''''''''''''''''''''
 class WeakCache implements Cache
 WeakCache o-- Cache: 被装饰
 WeakCache : <b>Cache</b> <i>delegate</i>
@@ -42,6 +47,7 @@ note bottom of WeakCache
     弱连接（垃圾回收）缓存
 end note
 
+'''''''''''''''''''''''''''''''''''''
 class ScheduledCache implements Cache
 ScheduledCache o-- Cache: 被装饰
 ScheduledCache : <b>Cache</b> <i>delegate</i>
@@ -50,6 +56,7 @@ note bottom of ScheduledCache
     定时清理缓存
 end note
 
+'''''''''''''''''''''''''''''''''''''
 class SerializedCache implements Cache
 SerializedCache o-- Cache: 被装饰
 SerializedCache : <b>Cache</b> <i>delegate</i>
@@ -58,6 +65,7 @@ note bottom of SerializedCache
     可读写（系列化/反序列化）缓存
 end note
 
+'''''''''''''''''''''''''''''''''''''
 class LoggingCache implements Cache
 LoggingCache o-- Cache: 被装饰
 LoggingCache : <b>Cache</b> <i>delegate</i>
@@ -66,6 +74,7 @@ note bottom of LoggingCache
     日志（打印命中率日志）缓存
 end note
 
+'''''''''''''''''''''''''''''''''''''
 class SynchronizedCache implements Cache
 SynchronizedCache o-- Cache: 被装饰
 SynchronizedCache : <b>Cache</b> <i>delegate</i>
@@ -74,12 +83,23 @@ note bottom of SynchronizedCache
     同步（线程安全）缓存
 end note
 
+'''''''''''''''''''''''''''''''''''''
 class BlockingCache implements Cache
 BlockingCache o-- Cache: 被装饰
 BlockingCache : <b>Cache</b> <i>delegate</i>
 
 note bottom of BlockingCache
     阻塞（排他：只有当前线程拿到了缓存才释放锁）缓存
+end note
+
+'''''''''''''''''''''''''''''''''''''
+class TransactionalCache implements Cache
+TransactionalCache o-- Cache: 被装饰
+TransactionalCache : <b>Cache</b> <i>delegate</i>
+TransactionalCache : <b>Map</b> <i>entriesToAddOnCommit</i>
+
+note bottom of TransactionalCache
+    与事务关联的缓存（使用其他事务提交的缓存【二级缓存】，在事务内可以使用一级缓存）
 end note
 
 @enduml

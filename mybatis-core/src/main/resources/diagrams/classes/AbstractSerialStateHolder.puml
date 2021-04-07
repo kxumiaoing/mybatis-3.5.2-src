@@ -1,0 +1,26 @@
+@startuml
+
+class AbstractSerialStateHolder implements Externalizable {
+  # {abstract} Object createDeserializationProxy(Object target, Map<String, ResultLoaderMap.LoadPair> unloadedProperties, ObjectFactory objectFactory, List<Class<?>> constructorArgTypes, List<Object> constructorArgs)
+}
+
+note bottom of AbstractSerialStateHolder
+    包含懒加载对象的现场（序列化）对象
+end note
+
+代理对象 -> 现场对象:保存现场
+现场对象 -> 代理对象:恢复现场
+
+class CglibSerialStateHolder extends AbstractSerialStateHolder
+
+note bottom of CglibSerialStateHolder
+    使用cglib创建代理对象
+end note
+
+class JavassistSerialStateHolder extends AbstractSerialStateHolder
+
+note bottom of JavassistSerialStateHolder
+    使用javassist创建代理对象
+end note
+
+@enduml

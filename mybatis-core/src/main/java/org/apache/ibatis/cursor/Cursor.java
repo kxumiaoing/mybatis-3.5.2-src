@@ -29,18 +29,26 @@ public interface Cursor<T> extends Closeable, Iterable<T> {
 
   /**
    * @return true if the cursor has started to fetch items from database.
+   *
+   * 游标是否打开
+   *
    */
   boolean isOpen();
 
   /**
-   *
    * @return true if the cursor is fully consumed and has returned all elements matching the query.
+   *
+   * 游标是否消费完
+   *
    */
   boolean isConsumed();
 
   /**
    * Get the current item index. The first item has the index 0.
    * @return -1 if the first cursor item has not been retrieved. The index of the current item retrieved.
+   *
+   * 消费当前记录的索引
+   *
    */
   int getCurrentIndex();
 }

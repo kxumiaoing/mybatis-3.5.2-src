@@ -1,0 +1,16 @@
+@startuml
+
+class RowBounds {
+  - int offset
+  - int limit
+}
+
+note right of RowBounds::offset
+    偏移量
+end note
+
+note right of RowBounds::limit
+    个数
+end note
+
+@enduml

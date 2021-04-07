@@ -28,20 +28,46 @@ import java.sql.SQLException;
  *
  * 动态代理真实的Connection对象
  *
+ * 拦截关闭操作：不是真的关闭连接，而是将连接放回线程池
+ *
  */
 class PooledConnection implements InvocationHandler {
 
   private static final String CLOSE = "close";
   private static final Class<?>[] IFACES = new Class<?>[] { Connection.class };
 
+  /**
+   * 真实连接的hash值
+   */
   private final int hashCode;
   private final PooledDataSource dataSource;
+  /**
+   * 真实连接
+   */
   private final Connection realConnection;
+  /**
+   * 真实连接的代理对象
+   */
   private final Connection proxyConnection;
+  /**
+   * 借出时间
+   */
   private long checkoutTimestamp;
+  /**
+   * 创建时间
+   */
   private long createdTimestamp;
+  /**
+   * 最后使用时间
+   */
   private long lastUsedTimestamp;
+  /**
+   * 连接参数编码
+   */
   private int connectionTypeCode;
+  /**
+   * 是否有效
+   */
   private boolean valid;
 
   /**

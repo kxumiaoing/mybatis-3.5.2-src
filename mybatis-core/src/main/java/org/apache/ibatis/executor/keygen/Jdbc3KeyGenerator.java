@@ -49,7 +49,6 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
  *
  */
 public class Jdbc3KeyGenerator implements KeyGenerator {
-
   /**
    * A shared instance.
    *
@@ -70,22 +69,26 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
     processBatch(ms, stmt, parameter);
   }
 
-  /**
-   *
-   * 未读 todo
-   *
-   */
   public void processBatch(MappedStatement ms, Statement stmt, Object parameter) {
     final String[] keyProperties = ms.getKeyProperties();
+    /**
+     * 没有指定主键对应的属性，不需要将主键设置到入参中，不做任何操作
+     */
     if (keyProperties == null || keyProperties.length == 0) {
       return;
     }
+    /**
+     * jdbc执行sql语句时生成的主键会以ResultSet的形式返回
+     */
     try (ResultSet rs = stmt.getGeneratedKeys()) {
       final ResultSetMetaData rsmd = rs.getMetaData();
       final Configuration configuration = ms.getConfiguration();
       if (rsmd.getColumnCount() < keyProperties.length) {
         // Error?
       } else {
+        /**
+         * 将结果设置到入参的主键属性上
+         */
         assignKeys(configuration, rs, rsmd, keyProperties, parameter);
       }
     } catch (Exception e) {
@@ -104,6 +107,9 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
       // Multi-param or single param with @Param in batch operation
       assignKeysToParamMapList(configuration, rs, rsmd, keyProperties, ((ArrayList<ParamMap<?>>) parameter));
     } else {
+      /**
+       * 非基础对象（不会被集合包裹）
+       */
       // Single param without @Param
       assignKeysToParam(configuration, rs, rsmd, keyProperties, parameter);
     }
@@ -134,6 +140,9 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
     Iterator<ParamMap<?>> iterator = paramMapList.iterator();
     List<KeyAssigner> assignerList = new ArrayList<>();
     long counter = 0;
+    /**
+     * 一条记录对应一个入参参数
+     */
     while (rs.next()) {
       if (!iterator.hasNext()) {
         throw new ExecutorException(String.format(MSG_TOO_MANY_KEYS, counter));
@@ -253,7 +262,13 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
       this.propertyName = propertyName;
     }
 
+    /**
+     * 设置主键属性的值
+     */
     protected void assign(ResultSet rs, Object param) {
+      /**
+       * 通过参数名称获取参数值
+       */
       if (paramName != null) {
         // If paramName is set, param is ParamMap
         param = ((ParamMap<?>) param).get(paramName);

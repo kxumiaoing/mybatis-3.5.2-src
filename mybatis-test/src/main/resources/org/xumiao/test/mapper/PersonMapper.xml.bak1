@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.xumiao.test.mapper.PersonMapper">
+
+
+    <resultMap id="personMap" type="Person">
+        <id property="id" column="id" jdbcType="NUMERIC"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <collection property="teachers" ofType="Teacher" columnPrefix="t_">
+            <id property="id" column="id" jdbcType="NUMERIC"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="age" column="age" jdbcType="NUMERIC"/>
+            <collection property="children" ofType="Children" columnPrefix="c_">
+                <id property="id" column="id" jdbcType="NUMERIC"/>
+                <result property="name" column="name" jdbcType="VARCHAR"/>
+             </collection>
+        </collection>
+    </resultMap>
+
+    <select id="queryPersonById" resultMap="personMap" resultOrdered="true">
+        select
+            p.id as id, p.name as name,
+            t.id as t_id, t.name as t_name, t.age as t_age,
+            c.id as t_c_id, c.name as t_c_name
+        from person p
+                 left join rel_person_teacher r on p.id = r.person_id
+                 left join teacher t on r.teacher_id = t.id
+                 left join rel_teacher_children rr on rr.teacher_id = t.id
+                 left join children c on rr.children_id = c.id
+        where p.id = #{id}
+    </select>
+
+</mapper>

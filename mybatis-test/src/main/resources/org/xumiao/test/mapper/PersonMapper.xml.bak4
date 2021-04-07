@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.xumiao.test.mapper.PersonMapper">
+    <select id="queryPersonById" statementType="CALLABLE">
+        {call get_teacher_name_and_children_name_by_id(#{id, mode=IN}, #{teacherName, jdbcType=VARCHAR, mode=OUT}, #{childName, jdbcType=VARCHAR, mode=OUT})}
+    </select>
+
+</mapper>

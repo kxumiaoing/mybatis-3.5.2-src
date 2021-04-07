@@ -15,25 +15,13 @@
  */
 package org.apache.ibatis.executor.loader;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.Externalizable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InvalidClassException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
-import java.io.ObjectStreamClass;
-import java.io.ObjectStreamException;
-import java.io.StreamCorruptedException;
+import org.apache.ibatis.reflection.factory.ObjectFactory;
+
+import java.io.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.ibatis.reflection.factory.ObjectFactory;
 
 /**
  * @author Eduardo Macarron
@@ -84,6 +72,9 @@ public abstract class AbstractSerialStateHolder implements Externalizable {
     os.writeObject(this.constructorArgs);
 
     final byte[] bytes = baos.toByteArray();
+    /**
+     * 写入的是字节流
+     */
     out.writeObject(bytes);
 
     if (firstRound) {
@@ -95,8 +86,14 @@ public abstract class AbstractSerialStateHolder implements Externalizable {
   public final void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
     final Object data = in.readObject();
     if (data.getClass().isArray()) {
+      /**
+       * 读取的是字节流，需要解析
+       */
       this.userBeanBytes = (byte[]) data;
     } else {
+      /**
+       * 写入的不是“包装对象”，是原始对象，不需要解析
+       */
       this.userBean = data;
     }
   }
@@ -128,6 +125,9 @@ public abstract class AbstractSerialStateHolder implements Externalizable {
     return this.createDeserializationProxy(userBean, arrayProps, objectFactory, arrayTypes, arrayValues);
   }
 
+  /**
+   * 恢复现场的代理对象
+   */
   protected abstract Object createDeserializationProxy(Object target, Map<String, ResultLoaderMap.LoadPair> unloadedProperties, ObjectFactory objectFactory,
           List<Class<?>> constructorArgTypes, List<Object> constructorArgs);
 

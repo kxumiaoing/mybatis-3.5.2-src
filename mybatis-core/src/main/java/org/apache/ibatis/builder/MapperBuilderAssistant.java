@@ -377,7 +377,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
    * 废弃
    */
   private ParameterMap getStatementParameterMap(
-      String parameterMapName,
+      String parameterMapName,//parameterMap对应的id
       Class<?> parameterTypeClass,
       String statementId) {
     parameterMapName = applyCurrentNamespace(parameterMapName, true);

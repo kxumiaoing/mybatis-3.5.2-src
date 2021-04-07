@@ -69,7 +69,7 @@ public class JndiDataSourceFactory implements DataSourceFactory {
   }
 
   /**
-   * 获取环境属性
+   * 获取上下文属性
    */
   private static Properties getEnvProperties(Properties allProps) {
     final String PREFIX = ENV_PREFIX;

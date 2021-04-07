@@ -1,0 +1,89 @@
+@startuml
+
+interface SqlSessionFactory {
+    ==使用默认类型Executor执行sql语句==
+    ..使用内部连接（可以定制事务的隔离级别和自动提交标示）..
+    +{abstract} SqlSession openSession()
+    +{abstract} SqlSession openSession(boolean autoCommit)
+    +{abstract} SqlSession openSession(TransactionIsolationLevel level)
+    ..使用外部连接..
+    +{abstract} SqlSession openSession(Connection connection)
+
+    ==使用指定类型Executor执行sql语句==
+    ..使用内部连接（可以定制事务的隔离级别和自动提交标示）..
+    +{abstract} SqlSession openSession(<color:red>ExecutorType execType</color>)
+    +{abstract} SqlSession openSession(<color:red>ExecutorType execType</color>, boolean autoCommit)
+    +{abstract} SqlSession openSession(<color:red>ExecutorType execType</color>, TransactionIsolationLevel level)
+    ..使用外部连接..
+    +{abstract} SqlSession openSession(<color:red>ExecutorType execType</color>, Connection connection) //使用外部连接
+
+    +{abstract} Configuration getConfiguration()
+}
+
+class DefaultSqlSessionFactory implements SqlSessionFactory
+
+interface SqlSession {
+    ==查询操作，对应Executor的query()和queryCursor()方法==
+    ..查询一个结果（不带入参、带入参）..
+    +{abstract} T selectOne(String statement)
+    +{abstract} T selectOne(String statement, <color:red>Object parameter</color>)
+
+    ..查询一组结果（不带入参、带入参、限制结果的条数）..
+    +{abstract} List<E> selectList(String statement)
+    +{abstract} List<E> selectList(String statement, <color:red>Object parameter</color>)
+    +{abstract} List<E> selectList(String statement, <color:red>Object parameter</color>, <color:blue>RowBounds rowBounds</color>)
+
+    ..查询一组结果，并且按照特定属性分组（不带入参、带入参、限制结果的条数）..
+    +{abstract} Map<K, V> selectMap(String statement, String mapKey)
+    +{abstract} Map<K, V> selectMap(String statement, String mapKey, <color:red>Object parameter</color>)
+    +{abstract} Map<K, V> selectMap(String statement, String mapKey, <color:red>Object parameter</color>, <color:blue>RowBounds rowBounds</color>)
+
+    ..查询返回游标（不带入参、带入参、限制结果的条数）..
+    +{abstract} Cursor<T> selectCursor(String statement)
+    +{abstract} Cursor<T> selectCursor(String statement, <color:red>Object parameter</color>)
+    +{abstract} Cursor<T> selectCursor(String statement, <color:red>Object parameter</color>, <color:blue>RowBounds rowBounds</color>)
+
+    ..查询支持自定义结果处理器（不带入参、带入参、限制结果的条数）..
+    +{abstract} void select(String statement, ResultHandler handler)
+    +{abstract} void select(String statement, ResultHandler handler, <color:red>Object parameter</color>)
+    +{abstract} void select(String statement, ResultHandler handler, <color:red>Object parameter</color>, <color:blue>RowBounds rowBounds</color>)
+
+    ==修改操作==
+    ..插入操作（不带入参、带入参）..
+    +{abstract} int insert(String statement)
+    +{abstract} int insert(String statement, <color:red>Object parameter</color>)
+
+    ..更新操作（不带入参、带入参）..
+    +{abstract} int update(String statement)
+    +{abstract} int update(String statement, <color:red>Object parameter</color>)
+
+    ..删除操作（不带入参、带入参）..
+    +{abstract} int delete(String statement);
+    +{abstract} int delete(String statement, <color:red>Object parameter</color>)
+
+    ==事务相关操作==
+    ..提交事务..
+    +{abstract} void commit()
+    +{abstract} void commit(boolean force)
+
+    ..回滚事务..
+    +{abstract} void rollback()
+    +{abstract} void rollback(boolean force)
+
+    ==返回以动态代理对象为门面的执行操作对象==
+    +{abstract} T getMapper(Class<T> type)
+
+    +{abstract} List<BatchResult> flushStatements()
+
+    +{abstract} void close()
+
+    +{abstract} void clearCache()
+
+    +{abstract} Configuration getConfiguration()
+
+    +{abstract} Connection getConnection()
+}
+
+class DefaultSqlSession implements SqlSession
+
+@enduml

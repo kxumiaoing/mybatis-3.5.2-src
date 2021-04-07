@@ -69,12 +69,24 @@ public class DefaultParameterHandler implements ParameterHandler {
           Object value;
           String propertyName = parameterMapping.getProperty();
           if (boundSql.hasAdditionalParameter(propertyName)) { // issue #448 ask first for additional params
+            /**
+             * 运行时参数
+             */
             value = boundSql.getAdditionalParameter(propertyName);
           } else if (parameterObject == null) {
+            /**
+             * 没有入参
+             */
             value = null;
           } else if (typeHandlerRegistry.hasTypeHandler(parameterObject.getClass())) {
+            /**
+             * 入参是基础类型
+             */
             value = parameterObject;
           } else {
+            /**
+             * 通过MetaObject获取对应的属性值
+             */
             MetaObject metaObject = configuration.newMetaObject(parameterObject);
             value = metaObject.getValue(propertyName);
           }

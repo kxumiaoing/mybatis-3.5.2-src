@@ -16,6 +16,8 @@
     <properties>
         <junit.version>4.12</junit.version>
         <mysql.connector.version>5.1.47</mysql.connector.version>
+        <oracle.connector.version>11.2.0.2.0</oracle.connector.version>
+        <lombok.version>1.18.16</lombok.version>
     </properties>
 
     <dependencies>
@@ -30,9 +32,19 @@
             <version>${mysql.connector.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc6</artifactId>
+            <version>${oracle.connector.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

@@ -1,0 +1,73 @@
+@startuml
+
+interface Executor {
+    ..核心功能..
+    +{abstract} int update(MappedStatement ms, Object parameter) //更新数据，包括update、insert和delete
+    +{abstract} List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) //查询操作
+    +{abstract} Cursor<E> queryCursor(MappedStatement ms, Object parameter, RowBounds rowBounds) //查询返回游标
+    +{abstract} void commit(boolean required) //提交操作
+    +{abstract} void rollback(boolean required) //回滚操作
+    +{abstract} void close(boolean forceRollback) //关闭操作
+    +{abstract} List<BatchResult> flushStatements() //刷新批量操作的缓存
+    +{abstract} void clearLocalCache() //刷新session级别的缓存
+
+    ..辅助功能..
+    +{abstract} List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey cacheKey, BoundSql boundSql)
+    +{abstract} CacheKey createCacheKey(MappedStatement ms, Object parameterObject, RowBounds rowBounds, BoundSql boundSql)
+    +{abstract} boolean isCached(MappedStatement ms, CacheKey key)
+    +{abstract} void deferLoad(MappedStatement ms, MetaObject resultObject, String property, CacheKey key, Class<?> targetType)
+    +{abstract} Transaction getTransaction()
+    +{abstract} boolean isClosed()
+    +{abstract} void setExecutorWrapper(Executor executor)
+}
+
+note left of Executor
+    sql语句执行器
+end note
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+class BaseExecutor implements Executor{
+    #{abstract} int doUpdate(MappedStatement ms, Object parameter)
+    #{abstract} List<BatchResult> doFlushStatements(boolean isRollback)
+    #{abstract} List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql)
+    #{abstract} Cursor<E> doQueryCursor(MappedStatement ms, Object parameter, RowBounds rowBounds, BoundSql boundSql)
+}
+
+note top of BaseExecutor
+    依赖StatementHandler对象执行数据操作，本类做一些公共操作：
+    1、处理公共的提交、回滚和关闭操作
+    2、创建一级缓存
+    3、解决查询循环依赖问题（DeferredLoad对象）
+    4、快速失败操作
+end note
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+class SimpleExecutor extends BaseExecutor
+
+note bottom of SimpleExecutor
+    不能批量执行，不能复用Statement对象
+end note
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+class ReuseExecutor extends BaseExecutor
+
+note bottom of ReuseExecutor
+    复用Statement对象
+end note
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+class BatchExecutor extends BaseExecutor
+
+note bottom of BatchExecutor
+    批量执行 + 复用Statement对象
+end note
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+class CachingExecutor implements Executor
+CachingExecutor o-- Executor: 被装饰
+
+note bottom of CachingExecutor
+   创建二级缓存
+end note
+
+@enduml

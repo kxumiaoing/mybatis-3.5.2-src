@@ -24,9 +24,14 @@ import java.sql.SQLException;
  * @author Clinton Begin
  */
 public interface ParameterHandler {
-
+  /**
+   * 获取入参对象
+   */
   Object getParameterObject();
 
+  /**
+   * 为Statement对象设置参数
+   */
   void setParameters(PreparedStatement ps)
       throws SQLException;
 

@@ -58,31 +58,58 @@ public class MapperMethod {
     Object result;
     switch (command.getType()) {
       case INSERT: {
+        /**
+         * 插入
+         */
         Object param = method.convertArgsToSqlCommandParam(args);
         result = rowCountResult(sqlSession.insert(command.getName(), param));
         break;
       }
       case UPDATE: {
+        /**
+         * 更新
+         */
         Object param = method.convertArgsToSqlCommandParam(args);
         result = rowCountResult(sqlSession.update(command.getName(), param));
         break;
       }
       case DELETE: {
+        /**
+         * 删除
+         */
         Object param = method.convertArgsToSqlCommandParam(args);
         result = rowCountResult(sqlSession.delete(command.getName(), param));
         break;
       }
       case SELECT:
+        /**
+         * 查询
+         */
         if (method.returnsVoid() && method.hasResultHandler()) {
+          /**
+           * 有resultHandler
+           */
           executeWithResultHandler(sqlSession, args);
           result = null;
         } else if (method.returnsMany()) {
+          /**
+           * 返回集合
+           */
           result = executeForMany(sqlSession, args);
         } else if (method.returnsMap()) {
+          /**
+           * 返回Map
+           */
           result = executeForMap(sqlSession, args);
         } else if (method.returnsCursor()) {
+          /**
+           * 返回游标
+           */
           result = executeForCursor(sqlSession, args);
         } else {
+          /**
+           * 返回一个值
+           */
           Object param = method.convertArgsToSqlCommandParam(args);
           result = sqlSession.selectOne(command.getName(), param);
           if (method.returnsOptional()
@@ -92,6 +119,9 @@ public class MapperMethod {
         }
         break;
       case FLUSH:
+        /**
+         * 刷新（批量执行时提交）
+         */
         result = sqlSession.flushStatements();
         break;
       default:
@@ -104,6 +134,9 @@ public class MapperMethod {
     return result;
   }
 
+  /**
+   * 修改操作结果转换
+   */
   private Object rowCountResult(int rowCount) {
     final Object result;
     if (method.returnsVoid()) {
@@ -120,6 +153,9 @@ public class MapperMethod {
     return result;
   }
 
+  /**
+   * 用户自定义结果处理器
+   */
   private void executeWithResultHandler(SqlSession sqlSession, Object[] args) {
     MappedStatement ms = sqlSession.getConfiguration().getMappedStatement(command.getName());
     if (!StatementType.CALLABLE.equals(ms.getStatementType())
@@ -137,6 +173,9 @@ public class MapperMethod {
     }
   }
 
+  /**
+   * 返回集合
+   */
   private <E> Object executeForMany(SqlSession sqlSession, Object[] args) {
     List<E> result;
     Object param = method.convertArgsToSqlCommandParam(args);
@@ -217,8 +256,13 @@ public class MapperMethod {
   }
 
   public static class SqlCommand {
-
+    /**
+     * 对应mappedStatement的id
+     */
     private final String name;
+    /**
+     * 对应mappedStatement的sql语句类型
+     */
     private final SqlCommandType type;
 
     public SqlCommand(Configuration configuration, Class<?> mapperInterface, Method method) {
@@ -251,6 +295,9 @@ public class MapperMethod {
       return type;
     }
 
+    /**
+     * 根据接口和方法获取对应的MappedStatement对象
+     */
     private MappedStatement resolveMappedStatement(Class<?> mapperInterface, String methodName,
         Class<?> declaringClass, Configuration configuration) {
       String statementId = mapperInterface.getName() + "." + methodName;
@@ -273,16 +320,45 @@ public class MapperMethod {
   }
 
   public static class MethodSignature {
-
+    /**
+     * 返回值为集合
+     */
     private final boolean returnsMany;
+    /**
+     * 返回值为Map
+     */
     private final boolean returnsMap;
+    /**
+     * 返回值为空
+     */
     private final boolean returnsVoid;
+    /**
+     * 返回值为游标
+     */
     private final boolean returnsCursor;
+    /**
+     * 返回值为Optional
+     */
     private final boolean returnsOptional;
+    /**
+     * 方法的返回值类型
+     */
     private final Class<?> returnType;
+    /**
+     * MapKey注解的值：用来分组
+     */
     private final String mapKey;
+    /**
+     * resultHandler参数在方法参数中的索引
+     */
     private final Integer resultHandlerIndex;
+    /**
+     * rowbound参数在方法参数中的索引
+     */
     private final Integer rowBoundsIndex;
+    /**
+     * 参数名解析器
+     */
     private final ParamNameResolver paramNameResolver;
 
     public MethodSignature(Configuration configuration, Class<?> mapperInterface, Method method) {
@@ -305,6 +381,9 @@ public class MapperMethod {
       this.paramNameResolver = new ParamNameResolver(configuration, method);
     }
 
+    /**
+     * 可能是一个对象或者ParamMap
+     */
     public Object convertArgsToSqlCommandParam(Object[] args) {
       return paramNameResolver.getNamedParams(args);
     }
@@ -358,6 +437,9 @@ public class MapperMethod {
       return returnsOptional;
     }
 
+    /**
+     * 对应类型的参数在方法参数中的索引
+     */
     private Integer getUniqueParamIndex(Method method, Class<?> paramType) {
       Integer index = null;
       final Class<?>[] argTypes = method.getParameterTypes();
@@ -373,6 +455,9 @@ public class MapperMethod {
       return index;
     }
 
+    /**
+     * MapKey注解的值
+     */
     private String getMapKey(Method method) {
       String mapKey = null;
       if (Map.class.isAssignableFrom(method.getReturnType())) {

@@ -15,14 +15,14 @@
  */
 package org.apache.ibatis.cache.decorators;
 
+import org.apache.ibatis.cache.Cache;
+import org.apache.ibatis.logging.Log;
+import org.apache.ibatis.logging.LogFactory;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.ibatis.cache.Cache;
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.logging.LogFactory;
 
 /**
  * The 2nd level cache transactional buffer.
@@ -76,6 +76,9 @@ public class TransactionalCache implements Cache {
     }
   }
 
+  /**
+   * 保存本transaction的缓存
+   */
   @Override
   public void putObject(Object key, Object object) {
     entriesToAddOnCommit.put(key, object);
@@ -88,18 +91,30 @@ public class TransactionalCache implements Cache {
 
   @Override
   public void clear() {
+    /**
+     * 标示需要在提交时清空缓存（没有提交是不清空的，因为数据根本没有变脏）
+     */
     clearOnCommit = true;
     entriesToAddOnCommit.clear();
   }
 
   public void commit() {
+    /**
+     * 是否需要清空缓存
+     */
     if (clearOnCommit) {
       delegate.clear();
     }
+    /**
+     * 提交本事务产生的缓存
+     */
     flushPendingEntries();
     reset();
   }
 
+  /**
+   * 丢弃本transaction的缓存
+   */
   public void rollback() {
     unlockMissedEntries();
     reset();

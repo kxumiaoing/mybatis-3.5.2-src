@@ -1,0 +1,45 @@
+@startuml
+
+class DeferredLoad {
+    - <b>MetaObject</b> <i>resultObject</i>
+    - <b>String</b> <i>property</i>
+    - <b>Class<?></b> <i>targetType</i>
+    - <b>CacheKey</b> <i>key</i>
+    - <b>PerpetualCache</b> <i>localCache</i>
+    - <b>ObjectFactory</b> <i>objectFactory</i>
+    - <b>ResultExtractor</b> <i>resultExtractor</i>
+}
+
+note top of DeferredLoad
+    为了解决循环依赖问题，延迟（不是懒加载）加载对象的某个属性值
+end note
+
+note left of DeferredLoad::resultObject
+    宿主对象对应的MetaObject
+end note
+
+note right of DeferredLoad::property
+    属性的名称
+end note
+
+note left of DeferredLoad::targetType
+    属性的类型
+end note
+
+note right of DeferredLoad::key
+    缓存的key
+end note
+
+note left of DeferredLoad::localCache
+    session级别的缓存
+end note
+
+note right of DeferredLoad::objectFactory
+    对象工厂，用来创建ResultExtractor实例
+end note
+
+note left of DeferredLoad::resultExtractor
+    属性值提取器（或者说转换器）
+end note
+
+@enduml

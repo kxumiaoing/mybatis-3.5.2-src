@@ -405,7 +405,7 @@ public class PooledDataSource implements DataSource {
       state.activeConnections.remove(conn);
       if (conn.isValid()) {
         /**
-         * 检查空闲连接空间，并且保证还回来的连接是使用最新的连接参数
+         * 检查空闲空间，选择是否缓存（要换个马甲）
          */
         if (state.idleConnections.size() < poolMaximumIdleConnections && conn.getConnectionTypeCode() == expectedConnectionTypeCode) {
           /**
@@ -416,7 +416,7 @@ public class PooledDataSource implements DataSource {
             conn.getRealConnection().rollback();
           }
           /**
-           * 换个新的马甲
+           * 归还的时候换个新的马甲
            */
           PooledConnection newConn = new PooledConnection(conn.getRealConnection(), this);
           state.idleConnections.add(newConn);
@@ -455,6 +455,10 @@ public class PooledDataSource implements DataSource {
 
   /**
    * 空闲连接，新建连接，强行收回借出时间超时的连接，等待
+   * 获取连接方式：
+   *    1、从空闲连接池拿
+   *    2、创建新的连接
+   *    3、强行征用借出超时的连接（重新包装）
    */
   private PooledConnection popConnection(String username, String password) throws SQLException {
     boolean countedWait = false;
@@ -468,10 +472,13 @@ public class PooledDataSource implements DataSource {
     while (conn == null) {
       synchronized (state) {
         /**
-         * 1、从空闲连接池中拿
+         * 获取连接
          */
         if (!state.idleConnections.isEmpty()) {
           // Pool has available connection
+          /**
+           * 1、从空闲连接池中拿
+           */
           conn = state.idleConnections.remove(0);
           if (log.isDebugEnabled()) {
             log.debug("Checked out connection " + conn.getRealHashCode() + " from pool.");
@@ -497,11 +504,11 @@ public class PooledDataSource implements DataSource {
             if (longestCheckoutTime > poolMaximumCheckoutTime) {
               // Can claim overdue connection
               /**
-               * 没有拿到连接计数器
+               * 借出超时连接计数器
                */
               state.claimedOverdueConnectionCount++;
               /**
-               * 没有拿到连接时，总的timeout检测时间
+               * 借出超时连接总的超时数
                */
               state.accumulatedCheckoutTimeOfOverdueConnections += longestCheckoutTime;
               state.accumulatedCheckoutTime += longestCheckoutTime;
@@ -528,7 +535,7 @@ public class PooledDataSource implements DataSource {
                 }
               }
               /**
-               *
+               * 重新包装
                */
               conn = new PooledConnection(oldestActiveConnection.getRealConnection(), this);
               conn.setCreatedTimestamp(oldestActiveConnection.getCreatedTimestamp());
@@ -573,7 +580,7 @@ public class PooledDataSource implements DataSource {
         }
 
         /**
-         * 得到了一个连接，验证连接的有效性，并初始化一些用于统计性能参数的值
+         * 验证连接的有效性，并初始化一些用于统计性能参数的值
          */
         if (conn != null) {
           // ping to server and check the connection is valid or not
@@ -651,6 +658,8 @@ public class PooledDataSource implements DataSource {
    *
    * @param conn - the connection to check
    * @return True if the connection is still usable
+   *
+   * 通过ping来检查连接的有效性
    */
   protected boolean pingConnection(PooledConnection conn) {
     boolean result = true;

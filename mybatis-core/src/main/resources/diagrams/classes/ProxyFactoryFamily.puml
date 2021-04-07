@@ -1,0 +1,26 @@
+@startuml
+
+interface ProxyFactory {
+    + {abstract} Object createProxy(Object target, ResultLoaderMap lazyLoader, Configuration configuration, ObjectFactory objectFactory, List<Class<?>> constructorArgTypes, List<Object> constructorArgs)
+}
+
+note top of ProxyFactory
+    代理对象工厂
+end note
+
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''
+class JavassistProxyFactory implements ProxyFactory
+
+note bottom of JavassistProxyFactory
+    使用javasisst类库创建代理对象
+end note
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''
+class CglibProxyFactory implements ProxyFactory
+
+note bottom of CglibProxyFactory
+    使用cglib类库创建代理对象
+end note
+
+@enduml

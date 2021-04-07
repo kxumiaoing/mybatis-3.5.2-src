@@ -1,0 +1,36 @@
+@startuml
+
+class CacheKey {
+    - int multiplier
+    - int hashcode
+    - long checksum
+    - int count
+    - List<Object> updateList
+ }
+
+note top of CacheKey
+    缓存的key
+    严重依赖包含元素对象的hashCode()和equals()方法
+end note
+
+note right of CacheKey::multiplier
+    计算hash值的乘积因子
+end note
+
+note right of CacheKey::hashcode
+    hash值
+end note
+
+note right of CacheKey::checksum
+    元素的hash值的和
+end note
+
+note right of CacheKey::count
+    元素的个数
+end note
+
+note right of CacheKey::updateList
+    影响CacheKey的元素
+end note
+
+@enduml

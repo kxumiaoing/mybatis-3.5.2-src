@@ -15,11 +15,6 @@
  */
 package org.apache.ibatis.executor.loader;
 
-import java.sql.SQLException;
-import java.util.List;
-
-import javax.sql.DataSource;
-
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.ExecutorException;
@@ -34,20 +29,45 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.transaction.TransactionFactory;
 
+import javax.sql.DataSource;
+import java.sql.SQLException;
+import java.util.List;
+
 /**
  * @author Clinton Begin
+ *
+ * 包含延迟加载一切信息的容器
+ *
  */
 public class ResultLoader {
 
   protected final Configuration configuration;
+  /**
+   * 相关联的上一级执行器
+   */
   protected final Executor executor;
+  /**
+   * 本次查询对应的MappedStatement
+   */
   protected final MappedStatement mappedStatement;
+  /**
+   * 本次查询的入参
+   */
   protected final Object parameterObject;
+  /**
+   * 本次查询结果类型
+   */
   protected final Class<?> targetType;
   protected final ObjectFactory objectFactory;
   protected final CacheKey cacheKey;
   protected final BoundSql boundSql;
+  /**
+   * 结果提取器
+   */
   protected final ResultExtractor resultExtractor;
+  /**
+   * 创建实例的线程id
+   */
   protected final long creatorThreadId;
 
   protected boolean loaded;
@@ -66,26 +86,44 @@ public class ResultLoader {
     this.creatorThreadId = Thread.currentThread().getId();
   }
 
+  /**
+   * 懒加载结果
+   */
   public Object loadResult() throws SQLException {
     List<Object> list = selectList();
     resultObject = resultExtractor.extractObjectFromList(list, targetType);
     return resultObject;
   }
 
+  /**
+   * 查询结果
+   */
   private <E> List<E> selectList() throws SQLException {
     Executor localExecutor = executor;
+    /**
+     * 跨线程了，会有线程安全问题，所以需要重新创建一个
+     */
     if (Thread.currentThread().getId() != this.creatorThreadId || localExecutor.isClosed()) {
       localExecutor = newExecutor();
     }
     try {
+      /**
+       * 查找结果
+       */
       return localExecutor.query(mappedStatement, parameterObject, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER, cacheKey, boundSql);
     } finally {
+      /**
+       * 自己新建的Executor需要关闭
+       */
       if (localExecutor != executor) {
         localExecutor.close(false);
       }
     }
   }
 
+  /**
+   * 创建新的Executor对象
+   */
   private Executor newExecutor() {
     final Environment environment = configuration.getEnvironment();
     if (environment == null) {

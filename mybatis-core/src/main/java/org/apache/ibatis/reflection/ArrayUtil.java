@@ -35,9 +35,15 @@ public class ArrayUtil {
       return 0;
     }
     final Class<?> clazz = obj.getClass();
+    /**
+     * 非数组对象
+     */
     if (!clazz.isArray()) {
       return obj.hashCode();
     }
+    /**
+     * 依赖Arrays.hashCode()方法求取数组对象的hash值
+     */
     final Class<?> componentType = clazz.getComponentType();
     if (long.class.equals(componentType)) {
       return Arrays.hashCode((long[]) obj);
@@ -83,12 +89,18 @@ public class ArrayUtil {
       return false;
     }
     final Class<?> clazz = thisObj.getClass();
+    /**
+     * 非数组对象
+     */
     if (!clazz.equals(thatObj.getClass())) {
       return false;
     }
     if (!clazz.isArray()) {
       return thisObj.equals(thatObj);
     }
+    /**
+     * 依赖Arrays.equals()方法比较两个数组对象是否相等
+     */
     final Class<?> componentType = clazz.getComponentType();
     if (long.class.equals(componentType)) {
       return Arrays.equals((long[]) thisObj, (long[]) thatObj);
@@ -124,9 +136,15 @@ public class ArrayUtil {
       return "null";
     }
     final Class<?> clazz = obj.getClass();
+    /**
+     * 非数组对象
+     */
     if (!clazz.isArray()) {
       return obj.toString();
     }
+    /**
+     * 依赖Arrays.toString()方法求取数组对象的字符串表示
+     */
     final Class<?> componentType = obj.getClass().getComponentType();
     if (long.class.equals(componentType)) {
       return Arrays.toString((long[]) obj);

@@ -1,0 +1,23 @@
+@startuml
+
+object MapperProxyFactory
+object MapperProxy
+object MapperMethod
+object SqlSession
+object "Executor(Transaction)" as E
+object StatementHandler
+object Statement
+object ParameterHandler
+object ResultSetHandler
+
+MapperProxyFactory --> MapperProxy
+MapperProxy --> MapperMethod
+MapperMethod --> SqlSession
+
+SqlSession --> E
+E --> StatementHandler
+StatementHandler --> Statement
+StatementHandler --> ParameterHandler
+StatementHandler --> ResultSetHandler
+
+@enduml

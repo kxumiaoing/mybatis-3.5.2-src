@@ -15,11 +15,6 @@
  */
 package org.apache.ibatis.cursor.defaults;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
 import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.executor.resultset.DefaultResultSetHandler;
 import org.apache.ibatis.executor.resultset.ResultSetWrapper;
@@ -27,6 +22,11 @@ import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.session.ResultContext;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * This is the default implementation of a MyBatis Cursor.
@@ -88,14 +88,23 @@ public class DefaultCursor<T> implements Cursor<T> {
 
   @Override
   public int getCurrentIndex() {
+    /**
+     * 结果集中的index
+     */
     return rowBounds.getOffset() + cursorIterator.iteratorIndex;
   }
 
   @Override
   public Iterator<T> iterator() {
+    /**
+     * 只能创建一个iterator
+     */
     if (iteratorRetrieved) {
       throw new IllegalStateException("Cannot open more than one iterator on a Cursor");
     }
+    /**
+     * 关闭了
+     */
     if (isClosed()) {
       throw new IllegalStateException("A Cursor is already closed.");
     }
@@ -103,6 +112,9 @@ public class DefaultCursor<T> implements Cursor<T> {
     return cursorIterator;
   }
 
+  /**
+   * 关闭
+   */
   @Override
   public void close() {
     if (isClosed()) {
@@ -123,13 +135,23 @@ public class DefaultCursor<T> implements Cursor<T> {
 
   protected T fetchNextUsingRowBound() {
     T result = fetchNextObjectFromDatabase();
+    /**
+     * 这个跳到offset处有点废
+     */
     while (result != null && indexWithRowBound < rowBounds.getOffset()) {
       result = fetchNextObjectFromDatabase();
     }
     return result;
   }
 
+  /**
+   * 从数据库中拿下一个值
+   * @return
+   */
   protected T fetchNextObjectFromDatabase() {
+    /**
+     * 关闭了
+     */
     if (isClosed()) {
       return null;
     }
@@ -137,12 +159,18 @@ public class DefaultCursor<T> implements Cursor<T> {
     try {
       status = CursorStatus.OPEN;
       if (!rsw.getResultSet().isClosed()) {
+        /**
+         * 使用resultSetHandler获取到一个结果对象（handleRowValue()方法内立即终止循环）
+         */
         resultSetHandler.handleRowValues(rsw, resultMap, objectWrapperResultHandler, RowBounds.DEFAULT, null);
       }
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
 
+    /**
+     * 下一个结果
+     */
     T next = objectWrapperResultHandler.result;
     if (next != null) {
       indexWithRowBound++;
@@ -165,6 +193,9 @@ public class DefaultCursor<T> implements Cursor<T> {
     return indexWithRowBound + 1;
   }
 
+  /**
+   * 缓存当前结果
+   */
   private static class ObjectWrapperResultHandler<T> implements ResultHandler<T> {
 
     private T result;
@@ -172,6 +203,9 @@ public class DefaultCursor<T> implements Cursor<T> {
     @Override
     public void handleResult(ResultContext<? extends T> context) {
       this.result = context.getResultObject();
+      /**
+       * 拿到了一个结果对象立刻停止，不拿了
+       */
       context.stop();
     }
   }

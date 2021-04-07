@@ -1,0 +1,60 @@
+@startuml
+
+interface ResultContext {
+    +{abstract} T getResultObject()
+    +{abstract} int getResultCount()
+    +{abstract} boolean isStopped()
+    +{abstract} void stop()
+}
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''
+class DefaultResultContext implements ResultContext {
+  - <b>T</b> <i>resultObject</i>
+  - <b>int</b> <i>resultCount</i>
+  - <b>boolean</b> <i>stopped</i>
+}
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''
+interface ResultHandler{
+    +{abstract} void handleResult(ResultContext<? extends T> resultContext)
+}
+
+
+note top of ResultHandler
+    结果处理器
+end note
+
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''
+class DefaultMapResultHandler implements ResultHandler {
+    - <b>Map<K, V></b> <i>mappedResults</i>
+    - <b>String</b> <i>mapKey</i>
+    - <b>ObjectFactory</b> <i>objectFactory</i>
+    - <b>ObjectWrapperFactory</b> <i>objectWrapperFactory</i>
+    - <b>ReflectorFactory</b> <i>reflectorFactory</i>
+}
+
+note bottom of DefaultMapResultHandler
+    通过MetaObject求取对象的属性值，并且按照该属性的值进行分组
+end note
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''
+class DefaultResultHandler implements ResultHandler {
+    - <b>List<Object></b> <i>list</i>
+}
+
+note bottom of DefaultResultHandler
+    收集结果，形成结果集合
+end note
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''
+class ObjectWrapperResultHandler<T> implements ResultHandler {
+    - <b>T</b> <i>result</i>
+}
+
+note bottom of ObjectWrapperResultHandler
+    缓存当前结果
+end note
+
+@enduml

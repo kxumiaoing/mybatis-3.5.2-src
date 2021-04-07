@@ -22,9 +22,17 @@ import java.lang.reflect.Method;
  * @author Clinton Begin
  */
 public class Invocation {
-
+  /**
+   * 拦截的对象
+   */
   private final Object target;
+  /**
+   * 拦截的方法
+   */
   private final Method method;
+  /**
+   * 拦截方法的参数
+   */
   private final Object[] args;
 
   public Invocation(Object target, Method method, Object[] args) {
@@ -45,6 +53,9 @@ public class Invocation {
     return args;
   }
 
+  /**
+   * 调用拦截对象的拦截方法
+   */
   public Object proceed() throws InvocationTargetException, IllegalAccessException {
     return method.invoke(target, args);
   }

@@ -567,6 +567,9 @@ public class Configuration {
   }
 
   public ParameterHandler newParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
+    /**
+     * 使用DefaultParameterHandler
+     */
     ParameterHandler parameterHandler = mappedStatement.getLang().createParameterHandler(mappedStatement, parameterObject, boundSql);
     parameterHandler = (ParameterHandler) interceptorChain.pluginAll(parameterHandler);
     return parameterHandler;
@@ -593,6 +596,9 @@ public class Configuration {
     executorType = executorType == null ? defaultExecutorType : executorType;
     executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
     Executor executor;
+    /**
+     * 创建Executor实例
+     */
     if (ExecutorType.BATCH == executorType) {
       executor = new BatchExecutor(this, transaction);
     } else if (ExecutorType.REUSE == executorType) {
@@ -600,9 +606,15 @@ public class Configuration {
     } else {
       executor = new SimpleExecutor(this, transaction);
     }
+    /**
+     * 缓存Executor（装饰模式）
+     */
     if (cacheEnabled) {
       executor = new CachingExecutor(executor);
     }
+    /**
+     * 拦截器
+     */
     executor = (Executor) interceptorChain.pluginAll(executor);
     return executor;
   }

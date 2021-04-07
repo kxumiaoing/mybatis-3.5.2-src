@@ -44,6 +44,9 @@ import org.apache.ibatis.session.RowBounds;
 /**
  * @author Clinton Begin
  * @author Franta Mejta
+ *
+ * 记录延迟加载信息的Map容器
+ *
  */
 public class ResultLoaderMap {
 
@@ -51,6 +54,9 @@ public class ResultLoaderMap {
 
   public void addLoader(String property, MetaObject metaResultObject, ResultLoader resultLoader) {
     String upperFirst = getUppercaseFirstProperty(property);
+    /**
+     * 在一个resultMap中，最左边的属性必须唯一，即多子属性对应的父属性所对应的延迟加载必须唯一
+     */
     if (!upperFirst.equalsIgnoreCase(property) && loaderMap.containsKey(upperFirst)) {
       throw new ExecutorException("Nested lazy loaded result property '" + property
               + "' for query id '" + resultLoader.mappedStatement.getId()
@@ -96,6 +102,9 @@ public class ResultLoaderMap {
     }
   }
 
+  /**
+   * 只支持一级属性
+   */
   private static String getUppercaseFirstProperty(String property) {
     String[] parts = property.split("\\.");
     return parts[0].toUpperCase(Locale.ENGLISH);
@@ -103,6 +112,7 @@ public class ResultLoaderMap {
 
   /**
    * Property which was not loaded yet.
+   * 未加载属性容器
    */
   public static class LoadPair implements Serializable {
 
@@ -144,23 +154,36 @@ public class ResultLoaderMap {
      */
     private Serializable mappedParameter;
 
+    /**
+     * @param property 需要加载的属性值
+     * @param metaResultObject 宿主对象的MetaObject
+     * @param resultLoader 属性对应的结果加载器
+     */
     private LoadPair(final String property, MetaObject metaResultObject, ResultLoader resultLoader) {
       this.property = property;
       this.metaResultObject = metaResultObject;
       this.resultLoader = resultLoader;
 
       /* Save required information only if original object can be serialized. */
+      /**
+       * 设置一些可以保存的属性（通过序列化保存对象）
+       */
       if (metaResultObject != null && metaResultObject.getOriginalObject() instanceof Serializable) {
         final Object mappedStatementParameter = resultLoader.parameterObject;
 
         /* @todo May the parameter be null? */
         if (mappedStatementParameter instanceof Serializable) {
+          /**
+           * 用于查询的入参可以序列化，保存一些查询必要的信息
+           */
           this.mappedStatement = resultLoader.mappedStatement.getId();
           this.mappedParameter = (Serializable) mappedStatementParameter;
-
           this.configurationFactory = resultLoader.configuration.getConfigurationFactory();
         } else {
           Log log = this.getLogger();
+          /**
+           * 入参不能序列化，序列化后不能恢复它原来的值，因此不能延迟加载
+           */
           if (log.isDebugEnabled()) {
             log.debug("Property [" + this.property + "] of ["
                     + metaResultObject.getOriginalObject().getClass() + "] cannot be loaded "
@@ -171,6 +194,9 @@ public class ResultLoaderMap {
       }
     }
 
+    /**
+     * 加载属性
+     */
     public void load() throws SQLException {
       /* These field should not be null unless the loadpair was serialized.
        * Yet in that case this method should not be called. */
@@ -184,7 +210,13 @@ public class ResultLoaderMap {
       this.load(null);
     }
 
+    /**
+     * 为用户对象加载属性
+     */
     public void load(final Object userObject) throws SQLException {
+      /**
+       * 实例化metaResultObject和resultLoader对象
+       */
       if (this.metaResultObject == null || this.resultLoader == null) {
         if (this.mappedParameter == null) {
           throw new ExecutorException("Property [" + this.property + "] cannot be loaded because "
@@ -219,6 +251,9 @@ public class ResultLoaderMap {
       this.metaResultObject.setValue(property, this.resultLoader.loadResult());
     }
 
+    /**
+     * 获取配置对象
+     */
     private Configuration getConfiguration() {
       if (this.configurationFactory == null) {
         throw new ExecutorException("Cannot get Configuration as configuration factory was not set.");
@@ -226,6 +261,9 @@ public class ResultLoaderMap {
 
       Object configurationObject;
       try {
+        /**
+         * 必须是静态方法
+         */
         final Method factoryMethod = this.configurationFactory.getDeclaredMethod(FACTORY_METHOD);
         if (!Modifier.isStatic(factoryMethod.getModifiers())) {
           throw new ExecutorException("Cannot get Configuration as factory method ["

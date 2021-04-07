@@ -96,6 +96,7 @@ public class JdbcTransaction implements Transaction {
     if (connection != null) {
       /**
        * 关闭之前，将连接的提交设置成自动提交
+       * （有些数据库查询也存在事务，需要提交事务）
        */
       resetAutoCommit();
       if (log.isDebugEnabled()) {
@@ -124,6 +125,9 @@ public class JdbcTransaction implements Transaction {
 
   /**
    * 将连接的提交设置成自动提交
+   *
+   * 一些数据库在查询的时候也开启事务，所以在关闭之前需要提交事务，在关闭之前设置自动提交标示是一种另一种解决办法
+   *
    */
   protected void resetAutoCommit() {
     try {

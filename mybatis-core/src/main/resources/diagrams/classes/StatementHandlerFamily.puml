@@ -1,0 +1,65 @@
+@startuml
+
+interface StatementHandler {
+    ==创建Statement对象==
+    + {abstract} Statement prepare(Connection connection, Integer transactionTimeout)
+    ==给Statement对象设置参数==
+    + {abstract} void parameterize(Statement statement)
+    ==通过Statement对象执行sql==
+    ..批量执行操作..
+    + {abstract} void batch(Statement statement)
+    ..更新操作..
+    + {abstract} int update(Statement statement)
+    ..查询操作..
+    + {abstract} List<E> query(Statement statement, ResultHandler resultHandler)
+    ..查询（游标）操作..
+    + {abstract} Cursor<E> queryCursor(Statement statement)
+
+    + {abstract} BoundSql getBoundSql()
+    + {abstract} ParameterHandler getParameterHandler()
+}
+
+note top of StatementHandler
+    执行sql语句操作
+end note
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+class RoutingStatementHandler implements StatementHandler {
+    -StatementHandler delegate
+}
+
+RoutingStatementHandler o-- StatementHandler
+
+note left of RoutingStatementHandler
+    根据不同的Statement类型，创建不同的StatementHandler对象（门面模式）
+end note
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+class BaseStatementHandler implements StatementHandler
+
+note left of BaseStatementHandler
+    实例化执行sql语句的Statement对象
+end note
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+class SimpleStatementHandler extends BaseStatementHandler
+
+note bottom of SimpleStatementHandler
+    实例化Statement对象，并执行sql语句操作
+end note
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+class PreparedStatementHandler extends BaseStatementHandler
+
+note bottom of PreparedStatementHandler
+    实例化PreparedStatement对象，并执行sql语句操作
+end note
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+class CallableStatementHandler extends BaseStatementHandler
+
+note bottom of CallableStatementHandler
+    实例化CallableStatement对象，并执行sql语句操作
+end note
+
+@enduml

@@ -72,6 +72,9 @@ public class CachingExecutor implements Executor {
 
   @Override
   public int update(MappedStatement ms, Object parameterObject) throws SQLException {
+    /**
+     * 是否进行缓存清理
+     */
     flushCacheIfRequired(ms);
     return delegate.update(ms, parameterObject);
   }
@@ -83,6 +86,9 @@ public class CachingExecutor implements Executor {
     return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
 
+  /**
+   * 查询游标不会使用到缓存
+   */
   @Override
   public <E> Cursor<E> queryCursor(MappedStatement ms, Object parameter, RowBounds rowBounds) throws SQLException {
     flushCacheIfRequired(ms);
@@ -96,9 +102,15 @@ public class CachingExecutor implements Executor {
     if (cache != null) {
       flushCacheIfRequired(ms);
       if (ms.isUseCache() && resultHandler == null) {
+        /**
+         * 有输出参数的查询不能使用二级缓存
+         */
         ensureNoOutParams(ms, boundSql);
         @SuppressWarnings("unchecked")
         List<E> list = (List<E>) tcm.getObject(cache, key);
+        /**
+         * 缓存为空，需要查库，并且将查询到的结果放入缓存
+         */
         if (list == null) {
           list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
           tcm.putObject(cache, key, list); // issue #578 and #116

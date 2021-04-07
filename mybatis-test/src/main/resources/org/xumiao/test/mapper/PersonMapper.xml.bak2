@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.xumiao.test.mapper.PersonMapper">
+    <resultMap id="personMap" type="Person">
+        <id property="id" column="id" jdbcType="NUMERIC"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <collection property="teacherNames" ofType="string">
+            <result column="t_name"/>
+        </collection>
+        <collection property="childNames" ofType="string">
+            <result column="c_name"/>
+        </collection>
+    </resultMap>
+
+    <select id="queryPersonById" resultMap="personMap" resultOrdered="true">
+
+        select p.*,
+               t.name as t_name,
+               c.name as c_name
+        from person p
+                   left join rel_person_teacher r on p.id = r.person_id
+                   left join teacher t on r.teacher_id = t.id
+                   left join rel_person_children rr on p.id = rr.person_id
+                   left join children c on rr.children_id = c.id
+    </select>
+
+</mapper>

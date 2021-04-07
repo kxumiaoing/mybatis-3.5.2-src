@@ -1,0 +1,14 @@
+@startuml
+
+class ResultSetWrapper {
+	- <b>ResultSet</b> <i>resultSet</i>
+	- <b>TypeHandlerRegistry</b> <i>typeHandlerRegistry</i>
+	- <b>List</b> <i>columnNames</i>
+	- <b>List<String></b> <i>classNames</i>
+	- <b>List<JdbcType></b> <i>jdbcTypes</i>
+	- <b>Map<String, Map<Class<?>, TypeHandler<?>>></b> <i>typeHandlerMap</i>
+	- <b>Map<String, List<String>></b> <i>mappedColumnNamesMap</i>
+	- <b>Map<String, List<String>></b> <i>unMappedColumnNamesMap</i>
+}
+
+@enduml

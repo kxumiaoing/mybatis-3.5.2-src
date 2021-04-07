@@ -41,7 +41,7 @@ public class PoolState {
    */
   protected long requestCount = 0;
   /**
-   * 获取连接过程耗时的累计和
+   * 在获取到连接的情况下，累计的请求时间
    */
   protected long accumulatedRequestTime = 0;
   /**
@@ -49,7 +49,7 @@ public class PoolState {
    */
   protected long accumulatedCheckoutTime = 0;
   /**
-   * 借出时间超时下，强行收回连接的次数
+   * 借出时间超时的连接数量
    */
   protected long claimedOverdueConnectionCount = 0;
   /**
@@ -57,11 +57,11 @@ public class PoolState {
    */
   protected long accumulatedCheckoutTimeOfOverdueConnections = 0;
   /**
-   * 累计的等待时间
+   * 累计的等待时间(wait方法)
    */
   protected long accumulatedWaitTime = 0;
   /**
-   * 等待的次数
+   * 等待的次数，在一次请求过程中不会重复计数
    */
   protected long hadToWaitCount = 0;
   /**

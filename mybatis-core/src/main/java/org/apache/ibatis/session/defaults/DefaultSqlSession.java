@@ -15,15 +15,6 @@
  */
 package org.apache.ibatis.session.defaults;
 
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ibatis.binding.BindingException;
 import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.exceptions.ExceptionFactory;
@@ -38,6 +29,11 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.session.SqlSession;
+
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.*;
 
 /**
  * The default implementation for {@link SqlSession}.
@@ -65,6 +61,10 @@ public class DefaultSqlSession implements SqlSession {
     this(configuration, executor, false);
   }
 
+
+  //##############################################################
+  //######################## one ################################
+  //##############################################################
   @Override
   public <T> T selectOne(String statement) {
     return this.selectOne(statement, null);
@@ -73,6 +73,9 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public <T> T selectOne(String statement, Object parameter) {
     // Popular vote was to return null on 0 results and throw exception on too many.
+    /**
+     * 依赖selectList方法
+     */
     List<T> list = this.selectList(statement, parameter);
     if (list.size() == 1) {
       return list.get(0);
@@ -83,53 +86,13 @@ public class DefaultSqlSession implements SqlSession {
     }
   }
 
-  @Override
-  public <K, V> Map<K, V> selectMap(String statement, String mapKey) {
-    return this.selectMap(statement, null, mapKey, RowBounds.DEFAULT);
-  }
 
-  @Override
-  public <K, V> Map<K, V> selectMap(String statement, Object parameter, String mapKey) {
-    return this.selectMap(statement, parameter, mapKey, RowBounds.DEFAULT);
-  }
 
-  @Override
-  public <K, V> Map<K, V> selectMap(String statement, Object parameter, String mapKey, RowBounds rowBounds) {
-    final List<? extends V> list = selectList(statement, parameter, rowBounds);
-    final DefaultMapResultHandler<K, V> mapResultHandler = new DefaultMapResultHandler<>(mapKey,
-            configuration.getObjectFactory(), configuration.getObjectWrapperFactory(), configuration.getReflectorFactory());
-    final DefaultResultContext<V> context = new DefaultResultContext<>();
-    for (V o : list) {
-      context.nextResultObject(o);
-      mapResultHandler.handleResult(context);
-    }
-    return mapResultHandler.getMappedResults();
-  }
 
-  @Override
-  public <T> Cursor<T> selectCursor(String statement) {
-    return selectCursor(statement, null);
-  }
 
-  @Override
-  public <T> Cursor<T> selectCursor(String statement, Object parameter) {
-    return selectCursor(statement, parameter, RowBounds.DEFAULT);
-  }
-
-  @Override
-  public <T> Cursor<T> selectCursor(String statement, Object parameter, RowBounds rowBounds) {
-    try {
-      MappedStatement ms = configuration.getMappedStatement(statement);
-      Cursor<T> cursor = executor.queryCursor(ms, wrapCollection(parameter), rowBounds);
-      registerCursor(cursor);
-      return cursor;
-    } catch (Exception e) {
-      throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);
-    } finally {
-      ErrorContext.instance().reset();
-    }
-  }
-
+  //##############################################################
+  //###################### List ###############################
+  //##############################################################
   @Override
   public <E> List<E> selectList(String statement) {
     return this.selectList(statement, null);
@@ -144,6 +107,9 @@ public class DefaultSqlSession implements SqlSession {
   public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
     try {
       MappedStatement ms = configuration.getMappedStatement(statement);
+      /**
+       * 使用Executor执行MappedStatement
+       */
       return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);
@@ -152,20 +118,101 @@ public class DefaultSqlSession implements SqlSession {
     }
   }
 
+
+
+  //##############################################################
+  //########################## Map ###############################
+  //##############################################################
   @Override
-  public void select(String statement, Object parameter, ResultHandler handler) {
-    select(statement, parameter, RowBounds.DEFAULT, handler);
+  public <K, V> Map<K, V> selectMap(String statement, String mapKey) {
+    return this.selectMap(statement, null, mapKey, RowBounds.DEFAULT);
   }
 
+  @Override
+  public <K, V> Map<K, V> selectMap(String statement, Object parameter, String mapKey) {
+    return this.selectMap(statement, parameter, mapKey, RowBounds.DEFAULT);
+  }
+
+  @Override
+  public <K, V> Map<K, V> selectMap(String statement, Object parameter, String mapKey, RowBounds rowBounds) {
+    /**
+     * 依赖selectList方法
+     */
+    final List<? extends V> list = selectList(statement, parameter, rowBounds);
+    /**
+     * 按照对象的某个属性的值（依赖MetaObject，太昂贵）进行分组
+     */
+    final DefaultMapResultHandler<K, V> mapResultHandler = new DefaultMapResultHandler<>(mapKey,
+            configuration.getObjectFactory(), configuration.getObjectWrapperFactory(), configuration.getReflectorFactory());
+    final DefaultResultContext<V> context = new DefaultResultContext<>();
+    for (V o : list) {
+      context.nextResultObject(o);
+      mapResultHandler.handleResult(context);
+    }
+    return mapResultHandler.getMappedResults();
+  }
+
+
+
+
+
+
+  //##############################################################
+  //########################## Cursor ##############################
+  //##############################################################
+  @Override
+  public <T> Cursor<T> selectCursor(String statement) {
+    return selectCursor(statement, null);
+  }
+
+  @Override
+  public <T> Cursor<T> selectCursor(String statement, Object parameter) {
+    return selectCursor(statement, parameter, RowBounds.DEFAULT);
+  }
+
+  @Override
+  public <T> Cursor<T> selectCursor(String statement, Object parameter, RowBounds rowBounds) {
+    try {
+      MappedStatement ms = configuration.getMappedStatement(statement);
+      /**
+       * 使用Executor执行MappedStatement
+       */
+      Cursor<T> cursor = executor.queryCursor(ms, wrapCollection(parameter), rowBounds);
+      /**
+       * 缓存Cursor
+       */
+      registerCursor(cursor);
+      return cursor;
+    } catch (Exception e) {
+      throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);
+    } finally {
+      ErrorContext.instance().reset();
+    }
+  }
+
+
+
+
+  //##############################################################
+  //########################### ResultHandler ###################################
+  //##############################################################
   @Override
   public void select(String statement, ResultHandler handler) {
     select(statement, null, RowBounds.DEFAULT, handler);
   }
 
   @Override
+  public void select(String statement, Object parameter, ResultHandler handler) {
+    select(statement, parameter, RowBounds.DEFAULT, handler);
+  }
+
+  @Override
   public void select(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler) {
     try {
       MappedStatement ms = configuration.getMappedStatement(statement);
+      /**
+       * 使用Executor执行MappedStatement
+       */
       executor.query(ms, wrapCollection(parameter), rowBounds, handler);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);
@@ -174,6 +221,13 @@ public class DefaultSqlSession implements SqlSession {
     }
   }
 
+
+
+
+
+  //##############################################################
+  //########################### insert ###################################
+  //##############################################################
   @Override
   public int insert(String statement) {
     return insert(statement, null);
@@ -181,9 +235,37 @@ public class DefaultSqlSession implements SqlSession {
 
   @Override
   public int insert(String statement, Object parameter) {
+    /**
+     * 依赖update方法
+     */
     return update(statement, parameter);
   }
 
+
+
+
+  //##############################################################
+  //########################### delete ###################################
+  //##############################################################
+  @Override
+  public int delete(String statement) {
+    return update(statement, null);
+  }
+
+  @Override
+  public int delete(String statement, Object parameter) {
+    /**
+     * 依赖update方法
+     */
+    return update(statement, parameter);
+  }
+
+
+
+
+  //##############################################################
+  //########################### update ###################################
+  //##############################################################
   @Override
   public int update(String statement) {
     return update(statement, null);
@@ -192,8 +274,14 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public int update(String statement, Object parameter) {
     try {
+      /**
+       * 有数据修改，缓存变脏
+       */
       dirty = true;
       MappedStatement ms = configuration.getMappedStatement(statement);
+      /**
+       * 使用Executor执行MappedStatement
+       */
       return executor.update(ms, wrapCollection(parameter));
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error updating database.  Cause: " + e, e);
@@ -202,16 +290,14 @@ public class DefaultSqlSession implements SqlSession {
     }
   }
 
-  @Override
-  public int delete(String statement) {
-    return update(statement, null);
-  }
 
-  @Override
-  public int delete(String statement, Object parameter) {
-    return update(statement, parameter);
-  }
 
+
+
+
+  //##############################################################
+  //########################### commit ###########################
+  //##############################################################
   @Override
   public void commit() {
     commit(false);
@@ -220,7 +306,13 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public void commit(boolean force) {
     try {
+      /**
+       * 依赖Executor提交事务
+       */
       executor.commit(isCommitOrRollbackRequired(force));
+      /**
+       * 更新变脏标示
+       */
       dirty = false;
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error committing transaction.  Cause: " + e, e);
@@ -229,6 +321,13 @@ public class DefaultSqlSession implements SqlSession {
     }
   }
 
+
+
+
+
+  //##############################################################
+  //########################### rollback ###########################
+  //##############################################################
   @Override
   public void rollback() {
     rollback(false);
@@ -237,7 +336,13 @@ public class DefaultSqlSession implements SqlSession {
   @Override
   public void rollback(boolean force) {
     try {
+      /**
+       * 依赖Executor回滚事务
+       */
       executor.rollback(isCommitOrRollbackRequired(force));
+      /**
+       * 更新变脏标示
+       */
       dirty = false;
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error rolling back transaction.  Cause: " + e, e);
@@ -246,9 +351,20 @@ public class DefaultSqlSession implements SqlSession {
     }
   }
 
+
+
+
+
+
+  //##############################################################
+  //########################### flush ###########################
+  //##############################################################
   @Override
   public List<BatchResult> flushStatements() {
     try {
+      /**
+       * 依赖Executor刷新
+       */
       return executor.flushStatements();
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error flushing statements.  Cause: " + e, e);
@@ -257,17 +373,36 @@ public class DefaultSqlSession implements SqlSession {
     }
   }
 
+
+
+
+
+  //##############################################################
+  //########################### close ###########################
+  //##############################################################
   @Override
   public void close() {
     try {
+      /**
+       * 依赖Executor关闭
+       */
       executor.close(isCommitOrRollbackRequired(false));
+      /**
+       * 关闭所有的游标
+       */
       closeCursors();
+      /**
+       * 更新变脏标示
+       */
       dirty = false;
     } finally {
       ErrorContext.instance().reset();
     }
   }
 
+  /**
+   * 关闭所有的游标
+   */
   private void closeCursors() {
     if (cursorList != null && cursorList.size() != 0) {
       for (Cursor<?> cursor : cursorList) {
@@ -316,6 +451,9 @@ public class DefaultSqlSession implements SqlSession {
     return (!autoCommit && dirty) || force;
   }
 
+  /**
+   * 将集合参数包装成Map
+   */
   private Object wrapCollection(final Object object) {
     if (object instanceof Collection) {
       StrictMap<Object> map = new StrictMap<>();
